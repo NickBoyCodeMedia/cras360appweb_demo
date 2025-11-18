@@ -184,11 +184,11 @@ Acesse: `http://127.0.0.1:8000`
 *Interface de coordenação com visão geral dos atendimentos e estatísticas consolidadas*
 
 ### 📊 Dashboard - Pedagógico
-![Dashboard Pedagógico](assets/dashboard-pedagog.jpeg)
+![Dashboard Pedagógico](assets/dashboard-coord.gif)
 *Painel pedagógico com acompanhamento de atividades e participantes do SCFV*
 
 ### 📋 Dashboard - Recepção
-![Dashboard Recepção](assets/dashboard-recepcao.jpeg)
+![Dashboard Recepção](assets/dashboard-recepcao.gif)
 *Interface de recepção para registro inicial de atendimentos e triagem*
 
 ### 🔐 Tela de Login
