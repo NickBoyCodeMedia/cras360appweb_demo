@@ -1,0 +1,108 @@
+# Arquivos Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribuições
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Arquivos de log
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Ambiente virtual
+venv/
+ENV/
+env/
+.env/
+
+# Arquivos do PyInstaller
+*.manifest
+*.spec
+
+# Diretórios de cache do pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Arquivos de tradução
+*.mo
+*.pot
+
+# Django
+media/
+
+# Arquivos estáticos coletados
+staticfiles/
+
+# Configurações específicas do IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Templates de Excel (conforme solicitado)
+excel_templates/
+*.xlsx
+*.xls
+
+# Arquivos temporários e de backup
+*~
+._*
+*.bak
+*.tmp
+
+# Environment / secrets
+.env
+.env.local
+.env.* 
+.envrc
+*.pem
+*.key
+*.p12
+*.jks
+
+# Python / Django
+db.sqlite3
+media/
+__pycache__/
+*.pyc
+
+# Secret scanning baseline
+.secrets.baseline
+
+# Virtualenv
+venv/
+.venv/
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
