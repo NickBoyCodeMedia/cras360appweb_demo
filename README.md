@@ -217,13 +217,14 @@ Este é um projeto de demonstração para fins de portfólio. Não é permitido 
 
 ## 👨‍💻 Desenvolvedor
 
-**Nick Boy** - [GitHub](https://github.com/NickBoyCodeMedia)
+**Pedro S Martins** - [GitHub](https://github.com/NickBoyCodeMedia)
 
 ---
 
 ## 📞 Contato
 
 Para mais informações sobre este projeto ou oportunidades profissionais, entre em contato através do GitHub.
+email: nickboycodemedia@gmail.com
 
 ---
 
