@@ -1,0 +1,192 @@
+/* Estilos para o sistema CRAS360 */
+
+/* Estilos gerais */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Nunito', sans-serif;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Cabeçalhos e títulos */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Cards */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: 600;
+    padding: 15px 20px;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* Estilos globais para inputs em maiúsculas */
+input[type="text"]:not(.no-uppercase), 
+input[type="search"]:not(.no-uppercase), 
+textarea:not(.no-uppercase) {
+    text-transform: uppercase;
+}
+
+/* Formulários */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Navegação por abas */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 20px;
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -2px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 12px 20px;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: #28a745;
+    background-color: transparent;
+    border-bottom: 2px solid #28a745;
+}
+
+/* Conteúdo das abas */
+.tab-content {
+    background-color: #fff;
+    border-radius: 0 0 10px 10px;
+    padding: 25px;
+}
+
+.tab-pane {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Botões */
+.btn {
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-primary:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.btn-toggle {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #cce6d2;
+    border: none;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Elementos específicos do formulário */
+.form-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.form-check-label {
+    font-weight: normal;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 15px;
+    }
+    
+    .tab-content {
+        padding: 15px;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}

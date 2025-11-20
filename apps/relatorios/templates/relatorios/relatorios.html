@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>
+        <i class="fas fa-chart-bar text-success"></i> 
+        Módulo de Relatórios
+    </h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> 
+        Selecione o tipo de relatório desejado abaixo para começar.
+        {% if not user.is_superuser %}
+            <br><strong>Observação:</strong> Você está autorizado a visualizar relatórios apenas do 
+            {% if user.cras %}{{ user.cras.nome }}{% else %}seu CRAS atual{% endif %}.
+        {% endif %}
+    </div>
+    
+    <div class="row mt-4">
+        {% if pode_acessar_scfv %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-child"></i> Relatórios SCFV</h4>
+                </div>
+                <div class="card-body">
+                    <p>Relatórios do Serviço de Convivência e Fortalecimento de Vínculos</p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item">Frequência de Participantes</li>
+                        <li class="list-group-item">Faixa Etária dos Beneficiários</li>
+                        <li class="list-group-item">Atividades Realizadas</li>
+                    </ul>
+                    <a href="{% url 'relatorios:scfv' %}" class="btn btn-success btn-block">
+                        <i class="fas fa-file-alt"></i> Acessar Relatórios SCFV
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if pode_acessar_paif %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-users"></i> Relatórios PAIF</h4>
+                </div>
+                <div class="card-body">
+                    <p>Relatórios do Serviço de Proteção e Atendimento Integral à Família</p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item">Atendimentos por Período</li>
+                        <li class="list-group-item">Perfil das Famílias Atendidas</li>
+                        <li class="list-group-item">Encaminhamentos Realizados</li>
+                    </ul>
+                    <a href="{% url 'relatorios:paif' %}" class="btn btn-primary btn-block">
+                        <i class="fas fa-file-alt"></i> Acessar Relatórios PAIF
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if user.is_superuser or user.perfilusuario.perfil == 'coordenador' or user.perfilusuario.perfil == 'desenvolvedor' %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0"><i class="fas fa-chart-pie"></i> Relatórios Gerais</h4>
+                </div>
+                <div class="card-body">
+                    <p>Relatórios consolidados e estatísticas gerais do CRAS</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-3 border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-calendar-alt fa-3x text-info mb-3"></i>
+                                    <h5>Relatório Mensal</h5>
+                                    <button class="btn btn-info mt-2">Acessar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card mb-3 border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                                    <h5>Estatísticas de Atendimento</h5>
+                                    <button class="btn btn-warning mt-2">Acessar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card mb-3 border-danger">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-map-marked-alt fa-3x text-danger mb-3"></i>
+                                    <h5>Distribuição Territorial</h5>
+                                    <button class="btn btn-danger mt-2">Acessar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

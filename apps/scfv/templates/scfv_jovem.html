@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SCFV Infantojuvenil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/scfv.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Barra de navegação superior com botões voltar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-tachometer-alt"></i> Painel
+            </a>
+            <a href="{% url 'scfv:index' %}" class="btn btn-outline-success">
+                <i class="fas fa-home"></i> Início SCFV
+            </a>
+        </div>
+        {% if modo == 'editar' %}
+        <a href="{% url 'scfv:consulta' %}" class="btn btn-outline-primary">
+            <i class="fas fa-search"></i> Voltar para Consulta
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h2 class="text-center">
+                {% if modo == 'editar' %}
+                    Editar Cadastro - SCFV Infantojuvenil
+                {% else %}
+                    Ficha de Cadastro - SCFV Infantojuvenil
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form action="{% if modo == 'editar' %}{% url 'scfv:atualizar' id=id %}{% else %}{% url 'scfv:salvar' %}{% endif %}" method="post">
+                {% csrf_token %}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="identificacao-tab" data-bs-toggle="tab" data-bs-target="#identificacao" type="button" role="tab" aria-controls="identificacao" aria-selected="true">
+                            <i class="fas fa-id-card"></i> Identificação
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="responsaveis-tab" data-bs-toggle="tab" data-bs-target="#responsaveis" type="button" role="tab" aria-controls="responsaveis" aria-selected="false">
+                            <i class="fas fa-users"></i> Responsáveis
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="escolares-tab" data-bs-toggle="tab" data-bs-target="#escolares" type="button" role="tab" aria-controls="escolares" aria-selected="false">
+                            <i class="fas fa-school"></i> Dados Escolares
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="prioritario-tab" data-bs-toggle="tab" data-bs-target="#prioritario" type="button" role="tab" aria-controls="prioritario" aria-selected="false">
+                            <i class="fas fa-exclamation-triangle"></i> Público Prioritário
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="observacoes-tab" data-bs-toggle="tab" data-bs-target="#observacoes" type="button" role="tab" aria-controls="observacoes" aria-selected="false">
+                            <i class="fas fa-comment-alt"></i> Observações
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4" id="myTabContent">
+                    <!-- Aba de Identificação -->
+                    <div class="tab-pane fade show active" id="identificacao" role="tabpanel" aria-labelledby="identificacao-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="coletivos" class="form-label">Coletivos</label>
+                                <input type="text" class="form-control uppercase" id="coletivos" name="coletivos" 
+                                       value="{% if dados and dados.coletivos %}{{ dados.coletivos }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="paif" class="form-label">PAIF (Número de Identificação da Família)</label>
+                                    <input type="text" class="form-control" id="paif" name="paif" 
+                                           value="{% if dados and dados.paif %}{{ dados.paif }}{% endif %}" required>
+                                    <div class="form-text">Informe o código PAIF para esta família</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="demanda" class="form-label">Demanda</label>
+                                <select class="form-select" id="demanda" name="demanda">
+                                    <option value="" selected disabled>Selecione a Demanda</option>
+                                    <option value="ATUALIZAÇÃO" {% if dados and dados.demanda == 'ATUALIZAÇÃO' %}selected{% endif %}>ATUALIZAÇÃO</option>
+                                    <option value="INCLUSÃO" {% if dados and dados.demanda == 'INCLUSÃO' %}selected{% endif %}>INCLUSÃO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="nome_crianca" class="form-label">Nome da criança</label>
+                                <input type="text" class="form-control uppercase" id="nome_crianca" name="nome_crianca" 
+                                       value="{% if dados and dados.nome_crianca %}{{ dados.nome_crianca }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="sexo" class="form-label">Sexo</label>
+                                <select class="form-select" id="sexo" name="sexo">
+                                    <option value="" selected disabled>Selecione o Sexo</option>
+                                    <option value="FEMININO" {% if dados and dados.sexo == 'FEMININO' %}selected{% endif %}>FEMININO</option>
+                                    <option value="MASCULINO" {% if dados and dados.sexo == 'MASCULINO' %}selected{% endif %}>MASCULINO</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="data_nascimento" class="form-label">Data de nascimento</label>
+                                <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" 
+                                       value="{% if dados and dados.data_nascimento %}{{ dados.data_nascimento }}{% endif %}" placeholder="DD/MM/AAAA">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="naturalidade" class="form-label">Naturalidade</label>
+                                <input type="text" class="form-control uppercase" id="naturalidade" name="naturalidade" 
+                                       value="{% if dados and dados.naturalidade %}{{ dados.naturalidade }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="cpf_crianca" class="form-label">CPF da criança</label>
+                                <input type="text" class="form-control cpf" id="cpf_crianca" name="cpf_crianca" 
+                                       value="{% if dados and dados.cpf_crianca %}{{ dados.cpf_crianca }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nis_crianca" class="form-label">NIS da criança</label>
+                                <input type="text" class="form-control numeric" id="nis_crianca" name="nis_crianca" 
+                                       value="{% if dados and dados.nis_crianca %}{{ dados.nis_crianca }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="rg_crianca" class="form-label">RG</label>
+                                <input type="text" class="form-control" id="rg_crianca" name="rg_crianca" 
+                                       value="{% if dados and dados.rg_crianca %}{{ dados.rg_crianca }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="endereco" class="form-label">Endereço</label>
+                                <input type="text" class="form-control uppercase" id="endereco" name="endereco" 
+                                       value="{% if dados and dados.endereco %}{{ dados.endereco }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="bairro" class="form-label">Bairro</label>
+                                <input type="text" class="form-control uppercase" id="bairro" name="bairro" 
+                                       value="{% if dados and dados.bairro %}{{ dados.bairro }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="numero" class="form-label">Número</label>
+                                <input type="text" class="form-control numeric" id="numero" name="numero" 
+                                       value="{% if dados and dados.numero %}{{ dados.numero }}{% endif %}">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="referencia" class="form-label">Referência</label>
+                                <input type="text" class="form-control uppercase" id="referencia" name="referencia" 
+                                       value="{% if dados and dados.referencia %}{{ dados.referencia }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="situacao_domicilio" class="form-label">Situação de Domicílio</label>
+                                <select class="form-select" id="situacao_domicilio" name="situacao_domicilio">
+                                    <option value="" selected disabled>Selecione a Situação de Domicílio</option>
+                                    <option value="Próprio" {% if dados and dados.situacao_domicilio == 'Próprio' %}selected{% endif %}>Próprio</option>
+                                    <option value="Alugado" {% if dados and dados.situacao_domicilio == 'Alugado' %}selected{% endif %}>Alugado</option>
+                                    <option value="Cedido" {% if dados and dados.situacao_domicilio == 'Cedido' %}selected{% endif %}>Cedido</option>
+                                    <option value="Ocupação" {% if dados and dados.situacao_domicilio == 'Ocupação' %}selected{% endif %}>Ocupação</option>
+                                    <option value="Outros" {% if dados and dados.situacao_domicilio == 'Outros' %}selected{% endif %}>Outros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="numero_pessoas_domicilio" class="form-label">Número de Pessoas no Domicílio</label>
+                                <input type="number" class="form-control" id="numero_pessoas_domicilio" name="numero_pessoas_domicilio" 
+                                       value="{% if dados and dados.numero_pessoas_domicilio %}{{ dados.numero_pessoas_domicilio }}{% endif %}" min="1">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Projetos Associados</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="projeto_som_cidadania" name="projetos" value="SOM E CIDADANIA" 
+                                           {% if dados and 'SOM E CIDADANIA' in dados.projetos %}checked{% endif %}>
+                                    <label class="form-check-label" for="projeto_som_cidadania">SOM E CIDADANIA</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="projeto_capoarte" name="projetos" value="CAPOARTE" 
+                                           {% if dados and 'CAPOARTE' in dados.projetos %}checked{% endif %}>
+                                    <label class="form-check-label" for="projeto_capoarte">CAPOARTE</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="projeto_somos_tao_jovens" name="projetos" value="SOMOS TÃO JOVENS" 
+                                           {% if dados and 'SOMOS TÃO JOVENS' in dados.projetos %}checked{% endif %}>
+                                    <label class="form-check-label" for="projeto_somos_tao_jovens">SOMOS TÃO JOVENS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="projeto_nascer" name="projetos" value="NASCER" 
+                                           {% if dados and 'NASCER' in dados.projetos %}checked{% endif %}>
+                                    <label class="form-check-label" for="projeto_nascer">NASCER</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Responsáveis -->
+                    <div class="tab-pane fade" id="responsaveis" role="tabpanel" aria-labelledby="responsaveis-tab">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="nome_mae" class="form-label">Nome da Mãe</label>
+                                <input type="text" class="form-control uppercase" id="nome_mae" name="nome_mae" 
+                                       value="{% if dados and dados.nome_mae %}{{ dados.nome_mae }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="cpf_mae" class="form-label">CPF da Mãe</label>
+                                <input type="text" class="form-control cpf" id="cpf_mae" name="cpf_mae" 
+                                       value="{% if dados and dados.cpf_mae %}{{ dados.cpf_mae }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="telefone" class="form-label">Telefone</label>
+                                <input type="text" class="form-control phone" id="telefone" name="telefone" 
+                                       value="{% if dados and dados.telefone %}{{ dados.telefone }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="responsavel_legal" class="form-label">Responsável Legal</label>
+                                <input type="text" class="form-control uppercase" id="responsavel_legal" name="responsavel_legal" 
+                                       value="{% if dados and dados.responsavel_legal %}{{ dados.responsavel_legal }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="rg_responsavel" class="form-label">RG Responsável</label>
+                                <input type="text" class="form-control" id="rg_responsavel" name="rg_responsavel" 
+                                       value="{% if dados and dados.rg_responsavel %}{{ dados.rg_responsavel }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cpf_responsavel" class="form-label">CPF Responsável</label>
+                                <input type="text" class="form-control cpf" id="cpf_responsavel" name="cpf_responsavel" 
+                                       value="{% if dados and dados.cpf_responsavel %}{{ dados.cpf_responsavel }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nis_responsavel" class="form-label">NIS Responsável</label>
+                                <input type="text" class="form-control numeric" id="nis_responsavel" name="nis_responsavel" 
+                                       value="{% if dados and dados.nis_responsavel %}{{ dados.nis_responsavel }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Dados Escolares -->
+                    <div class="tab-pane fade" id="escolares" role="tabpanel" aria-labelledby="escolares-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="escola_atual" class="form-label">Escola atual</label>
+                                <input type="text" class="form-control uppercase" id="escola_atual" name="escola_atual" 
+                                       value="{% if dados and dados.escola_atual %}{{ dados.escola_atual }}{% endif %}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="serie" class="form-label">Série</label>
+                                <select class="form-select" id="serie" name="serie">
+                                    <option value="" selected disabled>Selecione a Série</option>
+                                    <option value="1º Ano" {% if dados and dados.serie == '1º Ano' %}selected{% endif %}>1º Ano</option>
+                                    <option value="2º Ano" {% if dados and dados.serie == '2º Ano' %}selected{% endif %}>2º Ano</option>
+                                    <option value="3º Ano" {% if dados and dados.serie == '3º Ano' %}selected{% endif %}>3º Ano</option>
+                                    <option value="4º Ano" {% if dados and dados.serie == '4º Ano' %}selected{% endif %}>4º Ano</option>
+                                    <option value="5º Ano" {% if dados and dados.serie == '5º Ano' %}selected{% endif %}>5º Ano</option>
+                                    <option value="6º Ano" {% if dados and dados.serie == '6º Ano' %}selected{% endif %}>6º Ano</option>
+                                    <option value="7º Ano" {% if dados and dados.serie == '7º Ano' %}selected{% endif %}>7º Ano</option>
+                                    <option value="8º Ano" {% if dados and dados.serie == '8º Ano' %}selected{% endif %}>8º Ano</option>
+                                    <option value="9º Ano" {% if dados and dados.serie == '9º Ano' %}selected{% endif %}>9º Ano</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="turno" class="form-label">Turno</label>
+                                <select class="form-select" id="turno" name="turno">
+                                    <option value="" selected disabled>Selecione o Turno</option>
+                                    <option value="Manhã" {% if dados and dados.turno == 'Manhã' %}selected{% endif %}>Manhã</option>
+                                    <option value="Tarde" {% if dados and dados.turno == 'Tarde' %}selected{% endif %}>Tarde</option>
+                                    <option value="Noite" {% if dados and dados.turno == 'Noite' %}selected{% endif %}>Noite</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Público Prioritário -->
+                    <div class="tab-pane fade" id="prioritario" role="tabpanel" aria-labelledby="prioritario-tab">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isolamento" name="isolamento" value="1" 
+                                           {% if dados and dados.isolamento %}checked{% endif %}>
+                                    <label class="form-check-label" for="isolamento">
+                                        Isolamento
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trabalho_infantil" name="trabalho_infantil" value="1" 
+                                           {% if dados and dados.trabalho_infantil %}checked{% endif %}>
+                                    <label class="form-check-label" for="trabalho_infantil">
+                                        Trabalho infantil
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="violencia_negligencia" name="violencia_negligencia" value="1" 
+                                           {% if dados and dados.violencia_negligencia %}checked{% endif %}>
+                                    <label class="form-check-label" for="violencia_negligencia">
+                                        Violência ou negligência
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="defasagem_escolar" name="defasagem_escolar" value="1" 
+                                           {% if dados and dados.defasagem_escolar %}checked{% endif %}>
+                                    <label class="form-check-label" for="defasagem_escolar">
+                                        Defasagem escolar
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="fora_sistema" name="fora_sistema" value="1" 
+                                           {% if dados and dados.fora_sistema %}checked{% endif %}>
+                                    <label class="form-check-label" for="fora_sistema">
+                                        Fora do sistema
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="acolhimento" name="acolhimento" value="1" 
+                                           {% if dados and dados.acolhimento %}checked{% endif %}>
+                                    <label class="form-check-label" for="acolhimento">
+                                        Acolhimento
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="cumprimento_mse" name="cumprimento_mse" value="1" 
+                                           {% if dados and dados.cumprimento_mse %}checked{% endif %}>
+                                    <label class="form-check-label" for="cumprimento_mse">
+                                        Cumprimento de MSE
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="egresso_socioeducativa" name="egresso_socioeducativa" value="1" 
+                                           {% if dados and dados.egresso_socioeducativa %}checked{% endif %}>
+                                    <label class="form-check-label" for="egresso_socioeducativa">
+                                        Egresso de socioeducativa
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pessoa_deficiencia" name="pessoa_deficiencia" value="1" 
+                                           {% if dados and dados.pessoa_deficiencia %}checked{% endif %}>
+                                    <label class="form-check-label" for="pessoa_deficiencia">
+                                        Pessoa com deficiência
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="outros" name="outros" value="1" 
+                                           {% if dados and dados.outros %}checked{% endif %} onchange="toggleOutros(this)">
+                                    <label class="form-check-label" for="outros">
+                                        Outros
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <input type="text" class="form-control" id="qual_outros" name="qual_outros" 
+                                       value="{% if dados and dados.qual_outros %}{{ dados.qual_outros }}{% endif %}" placeholder="Qual? (se outros)" 
+                                       {% if not dados or not dados.outros %}disabled{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Observações -->
+                    <div class="tab-pane fade" id="observacoes" role="tabpanel" aria-labelledby="observacoes-tab">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="observacoes_texto" class="form-label">Observações</label>
+                                <textarea class="form-control" id="observacoes_texto" name="observacoes" rows="5">{% if dados and dados.observacoes %}{{ dados.observacoes }}{% endif %}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nome_responsavel_inscricao" class="form-label">Nome do Responsável pela Inscrição</label>
+                                <input type="text" class="form-control uppercase" id="nome_responsavel_inscricao" name="nome_responsavel_inscricao" 
+                                       value="{% if dados and dados.nome_responsavel_inscricao %}{{ dados.nome_responsavel_inscricao }}{% endif %}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="data_inscricao" class="form-label">Data da Inscrição</label>
+                                <input type="text" class="form-control" id="data_inscricao" name="data_inscricao" 
+                                       value="{% if dados and dados.data_inscricao %}{{ dados.data_inscricao }}{% else %}{{ data_atual }}{% endif %}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4 border-top pt-3">
+                            <div class="col-md-6">
+                                <a href="{% url 'scfv:index' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Voltar
+                                </a>
+                                <button type="button" onclick="history.back()" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-undo"></i> Cancelar
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> 
+                                    {% if modo == 'editar' %}
+                                        Atualizar Cadastro
+                                    {% else %}
+                                        Salvar Cadastro
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="{% static 'js/script.js' %}"></script>
+<script src="{% static 'js/scfv.js' %}"></script>
+<script>
+    function toggleOutros(checkbox) {
+        document.getElementById('qual_outros').disabled = !checkbox.checked;
+    }
+    
+    function navegarParaAba(abaId) {
+        $('#myTab button[data-bs-target="#' + abaId + '"]').tab('show');
+    }
+    
+    $(document).ready(function() {
+        $('.cpf').mask('000.000.000-00');
+        $('.phone').mask('(00) 00000-0000');
+        $('.date').mask('00/00/0000');
+        $('.numeric').mask('0000000000');
+        
+        document.querySelectorAll('.uppercase').forEach(function(element) {
+            element.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
+</script>
+{% endblock %}

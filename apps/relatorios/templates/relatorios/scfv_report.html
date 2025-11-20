@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios SCFV - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>
+            <i class="fas fa-child text-success"></i> 
+            Relatórios SCFV
+        </h1>
+        <a href="{% url 'relatorios:index' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar para Relatórios
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Filtros</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'relatorios:gerar_scfv' %}">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="tipo_relatorio">Tipo de Relatório:</label>
+                            <select name="tipo_relatorio" id="tipo_relatorio" class="form-control" required>
+                                <option value="">Selecione...</option>
+                                <option value="frequencia">Frequência de Participantes</option>
+                                <option value="idade">Distribuição por Faixa Etária</option>
+                                <option value="atividades">Relatório de Atividades</option>
+                                <option value="participantes">Lista de Participantes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="periodo_inicio">Data Início:</label>
+                            <input type="date" name="periodo_inicio" id="periodo_inicio" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="periodo_fim">Data Fim:</label>
+                            <input type="date" name="periodo_fim" id="periodo_fim" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="cras">Unidade CRAS:</label>
+                            {% if user.is_superuser or user.perfil == 'Administrador' %}
+                                <select name="cras" id="cras" class="form-control">
+                                    <option value="">Todos</option>
+                                    {% for cras in cras_list %}
+                                        <option value="{{ cras.id }}">{{ cras.nome }}</option>
+                                    {% endfor %}
+                                    <option value="1">CRAS Centro</option>
+                                    <option value="2">CRAS Norte</option>
+                                    <option value="3">CRAS Sul</option>
+                                </select>
+                            {% else %}
+                                <input type="text" class="form-control" value="{% if user.cras %}{{ user.cras.nome }}{% else %}CRAS Atual{% endif %}" readonly>
+                                <input type="hidden" name="cras" id="cras" value="{% if user.cras %}{{ user.cras.id }}{% endif %}">
+                                <small class="form-text text-muted">Você só pode visualizar dados do seu CRAS</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Formato de Saída:</label>
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-outline-primary active">
+                                    <input type="radio" name="formato" value="visualizar" checked> Visualizar
+                                </label>
+                                <label class="btn btn-outline-danger">
+                                    <input type="radio" name="formato" value="pdf"> PDF
+                                </label>
+                                <label class="btn btn-outline-success">
+                                    <input type="radio" name="formato" value="excel"> Excel
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-chart-bar"></i> Gerar Relatório
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="resultado-relatorio" style="display: none;">
+        <div class="card">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0" id="titulo-relatorio">Relatório</h4>
+                    <div>
+                        <button class="btn btn-sm btn-danger" id="btn-exportar-pdf">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn btn-sm btn-success" id="btn-exportar-excel">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="tabela-relatorio">
+                        <!-- O conteúdo da tabela será preenchido via JavaScript -->
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        const formato = document.querySelector('input[name="formato"]:checked').value;
+        if (formato === 'visualizar') {
+            e.preventDefault();
+            
+            // Coletar dados do formulário
+            const formData = new FormData(form);
+            
+            // Enviar requisição para API
+            fetch('{% url "relatorios:api_scfv" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarRelatorio(data);
+                } else {
+                    alert('Erro ao gerar relatório: ' + (data.message || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao processar sua solicitação.');
+            });
+        }
+    });
+    
+    function mostrarRelatorio(data) {
+        const tipoRelatorio = document.getElementById('tipo_relatorio');
+        const tituloRelatorio = document.getElementById('titulo-relatorio');
+        tituloRelatorio.textContent = tipoRelatorio.options[tipoRelatorio.selectedIndex].text;
+        
+        const tabela = document.getElementById('tabela-relatorio');
+        tabela.innerHTML = '';
+        
+        // Adicionar cabeçalhos
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        data.headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        
+        thead.appendChild(headerRow);
+        tabela.appendChild(thead);
+        
+        // Adicionar dados
+        const tbody = document.createElement('tbody');
+        
+        data.rows.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            row.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            
+            tbody.appendChild(tr);
+        });
+        
+        tabela.appendChild(tbody);
+        
+        // Exibir a seção de resultados
+        document.getElementById('resultado-relatorio').style.display = 'block';
+        
+        // Configurar botões de exportação
+        document.getElementById('btn-exportar-pdf').addEventListener('click', function() {
+            exportarRelatorio('pdf');
+        });
+        
+        document.getElementById('btn-exportar-excel').addEventListener('click', function() {
+            exportarRelatorio('excel');
+        });
+    }
+    
+    function exportarRelatorio(formato) {
+        // Coletar dados do formulário
+        const formData = new FormData(form);
+        formData.set('formato', formato);
+        
+        // Criar string de parâmetros URL
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            params.append(key, value);
+        }
+        
+        // Redirecionar para URL de exportação
+        const tipo = document.getElementById('tipo_relatorio').value;
+        window.location.href = `{% url 'relatorios:exportar' tipo='scfv' formato='placeholder' %}`.replace('placeholder', formato) + '?' + params.toString();
+    }
+});
+</script>
+{% endblock %}

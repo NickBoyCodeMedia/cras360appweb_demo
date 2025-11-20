@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="paif-container">
+    <h1>Serviço de Proteção e Atendimento Integral à Família (PAIF)</h1>
+    
+    <p class="paif-description">
+        O PAIF é um trabalho de caráter continuado que visa fortalecer a função protetiva das famílias, 
+        prevenindo a ruptura de vínculos, promovendo o acesso e usufruto de direitos e contribuindo para 
+        a melhoria da qualidade de vida.
+    </p>
+    
+    <div class="paif-actions">
+        <h2>Documentos e Formulários</h2>
+        
+        <div class="actions-grid">
+            <div class="action-card">
+                <div class="card-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Ficha de Inscrição</h3>
+                <p>Formulário para cadastro inicial de famílias no serviço PAIF.</p>
+                <a href="{% url 'paif:paif_fichainscricao' %}" class="action-button">Acessar</a>
+            </div>
+            
+            <div class="action-card">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Evolução de Atendimento</h3>
+                <p>Registro de evolução e acompanhamento dos casos atendidos pelo PAIF.</p>
+                <a href="{% url 'paif:paif_evolucao' %}" class="action-button">Acessar</a>
+            </div>
+            
+            <div class="action-card">
+                <div class="card-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h3>Listagem de Registros</h3>
+                <p>Lista de todas as famílias cadastradas no serviço PAIF.</p>
+                <a href="{% url 'paif:paif_listar' %}" class="action-button">Acessar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .paif-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .paif-description {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 30px;
+    }
+    
+    .paif-actions h2 {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eaeaea;
+    }
+    
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .action-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .card-icon {
+        font-size: 3rem;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+    
+    .action-button {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        padding: 8px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 15px;
+        transition: background-color 0.3s;
+    }
+    
+    .action-button:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}
+

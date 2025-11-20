@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="paif-header">
+    <h1>Serviço de Proteção e Atendimento Integral à Família (PAIF)</h1>
+    
+    <!-- Navegação melhorada -->
+    <div class="botoes-navegacao mb-3">
+        <a href="{% url 'index' %}" class="btn btn-secondary" id="btnHome">
+            <i class="fas fa-home"></i> Painel Inicial
+        </a>
+        <a href="{% url 'paif:paif_listar' %}" class="btn btn-primary" id="btnListagem">
+            <i class="fas fa-list"></i> Listagem de Registros
+        </a>
+    </div>
+    
+    <!-- Navegação por abas sem bordas extras -->
+    <div class="abas-personalizadas">
+        <button id="ficha-tab" class="aba-btn aba-ativa" onclick="mostrarAba('ficha')">
+            <i class="fas fa-file-alt"></i> Ficha de Inscrição
+        </button>
+        <button id="evolucao-tab" class="aba-btn" onclick="mostrarAba('evolucao')">
+            <i class="fas fa-chart-line"></i> Evolução de Atendimento
+        </button>
+    </div>
+    
+    <!-- Conteúdo das abas - sem padding e borda extras -->
+    <div class="conteudo-abas">
+        <!-- Aba da Ficha de Inscrição -->
+        <div id="ficha-conteudo" class="aba-conteudo" style="display:block;">
+            {% include 'paif/includes/ficha_inscricao.html' %}
+        </div>
+        
+        <!-- Aba da Evolução de Atendimento -->
+        <div id="evolucao-conteudo" class="aba-conteudo" style="display:none;">
+            {% include 'paif/includes/evolucao.html' %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Layout melhorado sem margens extras */
+    .paif-header h1 {
+        margin-bottom: 1.5rem;
+    }
+    
+    .botoes-navegacao {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Sistema de abas personalizado - otimizado */
+    .abas-personalizadas {
+        display: flex;
+        border-bottom: 2px solid #28a745;
+        margin-bottom: 0;
+    }
+    
+    .aba-btn {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        padding: 12px 24px;
+        cursor: pointer;
+        margin-right: 5px;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+        transition: all 0.2s ease;
+    }
+    
+    .aba-btn:hover:not(.aba-ativa) {
+        background-color: #e9ecef;
+    }
+    
+    .aba-btn.aba-ativa {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    
+    .conteudo-abas {
+        padding: 0;
+        background: white;
+        border: none;
+    }
+    
+    .aba-conteudo {
+        width: 100%;
+        position: relative;
+        margin-top: 20px;
+    }
+</style>
+
+<script>
+    // Função para alternar entre abas
+    function mostrarAba(abaId) {
+        console.log("Mostrando aba:", abaId);
+        
+        // Ocultar todos os conteúdos
+        document.querySelectorAll('.aba-conteudo').forEach(function(conteudo) {
+            conteudo.style.display = 'none';
+        });
+        
+        // Remover classe ativa de todos os botões
+        document.querySelectorAll('.aba-btn').forEach(function(btn) {
+            btn.classList.remove('aba-ativa');
+        });
+        
+        // Mostrar o conteúdo da aba selecionada
+        document.getElementById(abaId + '-conteudo').style.display = 'block';
+        
+        // Ativar o botão da aba
+        document.getElementById(abaId + '-tab').classList.add('aba-ativa');
+        
+        // Atualizar hash da URL
+        window.location.hash = abaId;
+    }
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Inicializando sistema de abas...");
+        
+        // Verificar hash da URL
+        const hash = window.location.hash ? window.location.hash.substring(1) : 'ficha';
+        console.log("Hash na URL:", hash);
+        
+        // Mostrar a aba correta baseada no hash
+        setTimeout(function() {
+            mostrarAba(hash);
+        }, 200);
+    });
+</script>
+{% endblock %}

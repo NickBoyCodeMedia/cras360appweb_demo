@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Busca de Beneficiários - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-search text-success"></i> Busca de Beneficiários
+        </h1>
+        <button class="btn btn-outline-secondary" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <button type="button" class="btn btn-outline-secondary ml-2" data-toggle="modal" data-target="#modalCadastroBeneficiario">
+            <i class="fas fa-user-plus"></i> Cadastro Inicial de Beneficiário
+        </button>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Insira os dados para busca</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'recepcao_busca' %}" class="mb-0">
+                <div class="input-group">
+                    <input type="text" name="termo" class="form-control form-control-lg" placeholder="Digite nome, CPF, NIS ou RG do beneficiário" value="{{ termo|default:'' }}" required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">
+                    Você pode buscar por nome, CPF, NIS ou RG. A busca parcial funciona para nomes.
+                </small>
+            </form>
+        </div>
+    </div>
+    
+    {% if termo %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Resultados da busca: <strong>{{ termo }}</strong></h5>
+            </div>
+            
+            {% if beneficiarios %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Data de Nascimento</th>
+                                <th>Último Atendimento</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for beneficiario in beneficiarios %}
+                            <tr>
+                                <td>
+                                    <strong>{{ beneficiario.nome_completo }}</strong>
+                                </td>
+                                <td>{{ beneficiario.cpf }}</td>
+                                <td>{{ beneficiario.data_nascimento|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if beneficiario.ultimo_atendimento %}
+                                        {{ beneficiario.ultimo_atendimento|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">Nenhum</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#iniciarAtendimentoModal-{{ beneficiario.id }}">
+                                            <i class="fas fa-user-plus"></i> Iniciar Atendimento
+                                        </button>
+                                        <a href="{% url 'recepcao_iniciar_atendimento' beneficiario_id=beneficiario.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-clipboard-list"></i> Atend. Completo
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver Histórico
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-search fa-3x text-muted"></i>
+                    </div>
+                    <h4>Nenhum beneficiário encontrado</h4>
+                    <p class="text-muted">Tente outro termo de busca ou cadastre um novo beneficiário.</p>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalDemandaEspontanea">
+                        <i class="fas fa-calendar-plus"></i> Agendar Demanda Espontânea
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modais de Atendimento Rápido -->
+{% if beneficiarios %}
+    {% for beneficiario in beneficiarios %}
+    <div class="modal fade" id="iniciarAtendimentoModal-{{ beneficiario.id }}" tabindex="-1" role="dialog" aria-labelledby="iniciarAtendimentoModalLabel-{{ beneficiario.id }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="iniciarAtendimentoModalLabel-{{ beneficiario.id }}">
+                        <i class="fas fa-user-plus"></i> Iniciar Atendimento Rápido
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Você está iniciando um atendimento para <strong>{{ beneficiario.nome_completo }}</strong>.
+                    </div>
+                    
+                    <form action="{% url 'recepcao_iniciar_atendimento' beneficiario_id=beneficiario.id %}" method="post" id="formAtendimentoRapido-{{ beneficiario.id }}">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="id_tipo_atendimento_{{ beneficiario.id }}">Tipo de Atendimento:</label>
+                            <select name="tipo_atendimento" id="id_tipo_atendimento_{{ beneficiario.id }}" class="form-control" required>
+                                <option value="" selected disabled>Selecione...</option>
+                                {% for tipo in tipos_atendimento %}
+                                    <option value="{{ tipo }}">{{ tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_tecnico_id_{{ beneficiario.id }}">Técnico Responsável:</label>
+                            <select name="tecnico_id" id="id_tecnico_id_{{ beneficiario.id }}" class="form-control" required>
+                                <option value="" selected disabled>Selecione...</option>
+                                {% for tecnico in tecnicos_disponiveis %}
+                                    <option value="{{ tecnico.id }}" data-perfil="{{ tecnico.perfil }}">
+                                        {{ tecnico.nome_completo }} ({{ tecnico.perfil }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_prioridade_{{ beneficiario.id }}">Prioridade:</label>
+                            <select name="prioridade" id="id_prioridade_{{ beneficiario.id }}" class="form-control">
+                                <option value="normal">Normal</option>
+                                <option value="alta">Alta</option>
+                                <option value="urgente">Urgente</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_observacao_{{ beneficiario.id }}">Observação:</label>
+                            <textarea name="observacao" id="id_observacao_{{ beneficiario.id }}" class="form-control" rows="3" placeholder="Digite uma observação sobre o motivo do atendimento"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" form="formAtendimentoRapido-{{ beneficiario.id }}">
+                        <i class="fas fa-check"></i> Confirmar Atendimento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Modal de Agendamento de Demanda Espontânea -->
+<div class="modal fade" id="modalDemandaEspontanea" tabindex="-1" role="dialog" aria-labelledby="modalDemandaEspontaneaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalDemandaEspontaneaLabel">
+                    <i class="fas fa-calendar-plus"></i> Agendar Atendimento - Demanda Espontânea
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Preencha os dados básicos para agendar um atendimento de demanda espontânea.
+                </div>
+                
+                <form action="{% url 'recepcao_agendar_demanda' %}" method="post" id="formDemandaEspontanea">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="id_nome_completo">Nome Completo: <span class="text-danger">*</span></label>
+                                <input type="text" id="id_nome_completo" name="nome_completo" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="id_data_nascimento">Data de Nascimento:</label>
+                                <input type="date" id="id_data_nascimento" name="data_nascimento" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_telefone">Telefone de Contato: <span class="text-danger">*</span></label>
+                                <input type="text" id="id_telefone" name="telefone" class="form-control" placeholder="(00) 00000-0000" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_cpf">CPF (se souber):</label>
+                                <input type="text" id="id_cpf" name="cpf" class="form-control" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_data_agendamento">Data do Agendamento: <span class="text-danger">*</span></label>
+                                <input type="date" id="id_data_agendamento" name="data_agendamento" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="id_hora_agendamento">Horário: <span class="text-danger">*</span></label>
+                                <input type="time" id="id_hora_agendamento" name="hora_agendamento" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_demanda">Demanda/Motivo do Atendimento: <span class="text-danger">*</span></label>
+                        <select name="demanda" id="id_demanda" class="form-control" required>
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="Orientação sobre benefícios">Orientação sobre benefícios</option>
+                            <option value="Cadastro Único">Cadastro Único</option>
+                            <option value="Auxílio Brasil">Auxílio Brasil</option>
+                            <option value="BPC">BPC - Benefício de Prestação Continuada</option>
+                            <option value="Violação de direitos">Violação de direitos</option>
+                            <option value="Conflitos familiares">Conflitos familiares</option>
+                            <option value="Inscrição em programas">Inscrição em programas</option>
+                            <option value="Outros">Outros (especificar)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_tecnico_id">Técnico Responsável: <span class="text-danger">*</span></label>
+                        <select name="tecnico_id" id="id_tecnico_id" class="form-control" required>
+                            <option value="" selected disabled>Selecione...</option>
+                            {% for tecnico in tecnicos_disponiveis %}
+                                <option value="{{ tecnico.id }}">
+                                    {{ tecnico.nome_completo }} ({{ tecnico.perfil }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_prioridade">Prioridade:</label>
+                        <select name="prioridade" id="id_prioridade" class="form-control">
+                            <option value="normal" selected>Normal</option>
+                            <option value="alta">Alta</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_observacao">Detalhes Adicionais:</label>
+                        <textarea name="observacao" id="id_observacao" class="form-control" rows="3" placeholder="Informações adicionais importantes para o atendimento"></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Este formulário <strong>NÃO</strong> realiza o cadastro completo do beneficiário. Apenas agenda um atendimento para que um técnico possa realizar o cadastro adequado.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" form="formDemandaEspontanea">
+                    <i class="fas fa-calendar-check"></i> Confirmar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para auto-preenchimento da data atual -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-preencher data de agendamento com a data atual
+    const dataAgendamento = document.getElementById('id_data_agendamento');
+    if (dataAgendamento) {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        let mes = hoje.getMonth() + 1;
+        let dia = hoje.getDate();
+        
+        // Formatar com zero à esquerda
+        mes = mes < 10 ? '0' + mes : mes;
+        dia = dia < 10 ? '0' + dia : dia;
+        
+        dataAgendamento.value = `${ano}-${mes}-${dia}`;
+    }
+    
+    // Máscaras para CPF e telefone
+    if (typeof jQuery !== 'undefined' && jQuery.fn.mask) {
+        $('#id_cpf').mask('000.000.000-00');
+        $('#id_telefone').mask('(00) 00000-0000');
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Script para filtrar técnicos com base no tipo de atendimento
+    document.querySelectorAll('[id^="id_tipo_atendimento_"]').forEach(function(select) {
+        select.addEventListener('change', function() {
+            const beneficiarioId = this.id.split('_').pop();
+            const tipoAtendimento = this.value;
+            const tecnicoSelect = document.getElementById('id_tecnico_id_' + beneficiarioId);
+            
+            Array.from(tecnicoSelect.options).forEach(function(option) {
+                if (option.value === '') return; // Pular a opção vazia
+                
+                const perfilTecnico = option.getAttribute('data-perfil');
+                let mostrar = false;
+                
+                switch (tipoAtendimento) {
+                    case 'PAIF':
+                        mostrar = ['Assistente Social', 'Técnico PAIF'].includes(perfilTecnico);
+                        break;
+                    case 'SCFV':
+                        mostrar = ['Técnico SCFV', 'Educador Social'].includes(perfilTecnico);
+                        break;
+                    case 'Atendimento Psicológico':
+                        mostrar = ['Psicólogo'].includes(perfilTecnico);
+                        break;
+                    default:
+                        mostrar = true;
+                }
+                
+                option.style.display = mostrar ? '' : 'none';
+            });
+            
+            // Limpar seleção se o técnico anterior não for compatível
+            if (tecnicoSelect.selectedIndex > 0) {
+                const selectedOption = tecnicoSelect.options[tecnicoSelect.selectedIndex];
+                if (selectedOption.style.display === 'none') {
+                    tecnicoSelect.selectedIndex = 0;
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

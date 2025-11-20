@@ -1,0 +1,147 @@
+/* Estilos para a seção de relatórios */
+
+/* Cabeçalhos de relatórios */
+.relatorio-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px 0;
+    border-bottom: 2px solid #28a745;
+}
+
+.relatorio-header h2 {
+    margin-bottom: 5px;
+}
+
+.relatorio-header .info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Tabelas de relatórios */
+.tabela-relatorio {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.tabela-relatorio th {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+.tabela-relatorio tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.tabela-relatorio td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+}
+
+/* Botões de filtro e exportação */
+.btn-relatorio {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* Estilização para a versão de impressão */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .tabela-relatorio {
+        font-size: 11pt;
+        width: 100%;
+    }
+    
+    .tabela-relatorio th {
+        background-color: #eee !important;
+        color: #000 !important;
+    }
+    
+    .relatorio-header {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    body {
+        padding: 0;
+        margin: 0;
+    }
+}
+
+/* Checkbox e grupos de filtros */
+.checkbox-group {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.form-check-inline {
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+/* Cards de resultados */
+.card-relatorio {
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-relatorio .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Estatísticas e resumo */
+.relatorio-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    padding: 15px;
+    margin: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    flex: 1 0 200px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-box .value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.stat-box .label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Modal de visualização de detalhes */
+.detalhe-modal .modal-header {
+    background-color: #28a745;
+    color: white;
+}
+
+.detalhe-modal .modal-body {
+    padding: 20px;
+}
+
+.detalhe-modal .modal-footer {
+    background-color: #f8f9fa;
+}

@@ -1,0 +1,100 @@
+/* Estilos para o sistema de notificações */
+
+/* Container de notificações fixo no canto da tela */
+.toast-notificacao {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    background-color: #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 1500;
+    margin-bottom: 10px;
+    animation: slide-in 0.3s ease-out forwards;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Cabeçalho da notificação */
+.notificacao-cabecalho {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: white;
+    font-weight: bold;
+}
+
+/* Botão de fechar */
+.notificacao-fechar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Corpo da notificação */
+.notificacao-corpo {
+    padding: 15px;
+    background-color: #fff;
+}
+
+.notificacao-corpo p {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+/* Rodapé da notificação */
+.notificacao-rodape {
+    padding: 5px 15px;
+    background-color: #f8f9fa;
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+}
+
+/* Tipos de notificação */
+.notificacao-padrao .notificacao-cabecalho {
+    background-color: #28a745; /* Verde para padrão */
+}
+
+.notificacao-urgente .notificacao-cabecalho {
+    background-color: #dc3545; /* Vermelho para urgente */
+}
+
+.notificacao-info .notificacao-cabecalho {
+    background-color: #17a2b8; /* Azul para informação */
+}
+
+/* Badge para contador de notificações */
+.badge-notificacoes {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor do ícone de notificações na barra de navegação */
+.notificacoes-nav-item {
+    position: relative;
+}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Iniciar Atendimento - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-user-clock text-success"></i> Iniciar Atendimento
+        </h1>
+        <a href="{% url 'recepcao_busca' %}?termo={{ beneficiario.nome_completo }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar à Busca
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Dados do Beneficiário -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Beneficiário</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4 text-center">
+                        <div class="mb-3">
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user fa-4x text-muted"></i>
+                            </div>
+                        </div>
+                        <h4>{{ beneficiario.nome_completo }}</h4>
+                        <p class="text-muted mb-1">
+                            {{ beneficiario.data_nascimento|date:"d/m/Y" }} 
+                            ({{ beneficiario.data_nascimento|timesince }} de idade)
+                        </p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-2">
+                        <strong>CPF:</strong> {{ beneficiario.cpf }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>RG:</strong> {{ beneficiario.rg|default:"Não informado" }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>NIS:</strong> {{ beneficiario.nis|default:"Não informado" }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Endereço:</strong> {{ beneficiario.endereco|default:"Não informado" }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Telefone:</strong> {{ beneficiario.telefone|default:"Não informado" }}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Último atendimento: 
+                        {% if beneficiario.ultimo_atendimento %}
+                            <strong>{{ beneficiario.ultimo_atendimento|date:"d/m/Y" }}</strong> 
+                            ({{ beneficiario.ultimo_tipo_atendimento }})
+                        {% else %}
+                            <strong>Nenhum atendimento registrado</strong>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Ver Histórico Completo
+                    </button>
+                    <button class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-edit"></i> Editar Cadastro
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Formulário de Atendimento -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Iniciar Novo Atendimento</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tipo_atendimento">Tipo de Atendimento:</label>
+                                    <select name="tipo_atendimento" id="tipo_atendimento" class="form-control" required>
+                                        <option value="">Selecione...</option>
+                                        {% for tipo in tipos_atendimento %}
+                                            <option value="{{ tipo }}">{{ tipo }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tecnico_id">Técnico Responsável:</label>
+                                    <select name="tecnico_id" id="tecnico_id" class="form-control" required>
+                                        <option value="">Selecione...</option>
+                                        {% for tecnico in tecnicos_disponiveis %}
+                                            <option value="{{ tecnico.id }}" data-perfil="{{ tecnico.perfil }}">
+                                                {{ tecnico.nome_completo }} ({{ tecnico.perfil }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="observacao">Motivo do Atendimento / Observações:</label>
+                                    <textarea name="observacao" id="observacao" rows="5" class="form-control" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="prioridade">Prioridade:</label>
+                                    <select name="prioridade" id="prioridade" class="form-control">
+                                        <option value="normal">Normal</option>
+                                        <option value="alta">Alta</option>
+                                        <option value="urgente">Urgente</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="notificar_tecnico">Notificar técnico imediatamente:</label>
+                                    <div class="custom-control custom-switch mt-2">
+                                        <input type="checkbox" class="custom-control-input" id="notificar_tecnico" name="notificar_tecnico" checked>
+                                        <label class="custom-control-label" for="notificar_tecnico">Sim, notificar</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle"></i> Iniciar Atendimento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtrar técnicos com base no tipo de atendimento
+    document.getElementById('tipo_atendimento').addEventListener('change', function() {
+        const tipoAtendimento = this.value;
+        const tecnicoSelect = document.getElementById('tecnico_id');
+        
+        Array.from(tecnicoSelect.options).forEach(function(option) {
+            if (option.value === '') return; // Pular a opção vazia
+            
+            const perfilTecnico = option.getAttribute('data-perfil');
+            let mostrar = false;
+            
+            switch (tipoAtendimento) {
+                case 'PAIF':
+                    mostrar = ['Assistente Social', 'Técnico PAIF'].includes(perfilTecnico);
+                    break;
+                case 'SCFV':
+                    mostrar = ['Técnico SCFV', 'Educador Social'].includes(perfilTecnico);
+                    break;
+                case 'Atendimento Psicológico':
+                    mostrar = ['Psicólogo'].includes(perfilTecnico);
+                    break;
+                default:
+                    mostrar = true;
+            }
+            
+            option.style.display = mostrar ? '' : 'none';
+        });
+        
+        // Limpar seleção se o técnico anterior não for compatível
+        if (tecnicoSelect.selectedIndex > 0) {
+            const selectedOption = tecnicoSelect.options[tecnicoSelect.selectedIndex];
+            if (selectedOption.style.display === 'none') {
+                tecnicoSelect.selectedIndex = 0;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

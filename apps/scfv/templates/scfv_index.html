@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SCFV - Serviço de Convivência e Fortalecimento de Vínculos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h2 class="text-center">Serviço de Convivência e Fortalecimento de Vínculos</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Sobre o SCFV</h5>
+                        <p>O Serviço de Convivência e Fortalecimento de Vínculos (SCFV) é um conjunto de serviços que visa complementar o trabalho social com famílias e prevenir situações de risco social. Ele fortalece as relações familiares e comunitárias, promovendo a integração e troca de experiências entre os participantes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <i class="fas fa-child fa-4x text-success mb-3"></i>
+                            <h4 class="card-title">SCFV Infantojuvenil</h4>
+                            <p class="card-text">Gerenciar cadastros e atividades para crianças e adolescentes.</p>
+                            <a href="{% url 'scfv:jovem_novo' %}" class="btn btn-success">
+                                <i class="fas fa-plus-circle"></i> Novo Cadastro
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user-friends fa-4x text-success mb-3"></i>
+                            <h4 class="card-title">SCFV Idosos</h4>
+                            <p class="card-text">Gerenciar cadastros e atividades para pessoas idosas.</p>
+                            <a href="{% url 'scfv:idoso_novo' %}" class="btn btn-success">
+                                <i class="fas fa-plus-circle"></i> Novo Cadastro
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-search fa-4x text-primary mb-3"></i>
+                            <h4 class="card-title">Consultar Cadastros</h4>
+                            <p class="card-text">Pesquisar e visualizar cadastros existentes do SCFV.</p>
+                            <a href="{% url 'scfv:consulta' %}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Consultar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

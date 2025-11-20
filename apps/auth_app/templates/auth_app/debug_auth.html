@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnóstico de Autenticação{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Diagnóstico de Autenticação</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Usuário Gestor SEMTRAS</h3>
+        </div>
+        <div class="card-body">
+            {% if gestor_info %}
+                <table class="table table-bordered">
+                    <tbody>
+                        {% for key, value in gestor_info.items %}
+                            <tr>
+                                <th>{{ key }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-danger">
+                    <strong>Usuário Gestor não encontrado!</strong> Verifique se o usuário 'semtras_breves@exemplo.com' existe.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">Grupos ({{ groups_info|length }})</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Usuários</th>
+                        <th>Permissões</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups_info %}
+                        <tr>
+                            <td>{{ group.name }}</td>
+                            <td>{{ group.users_count }}</td>
+                            <td>{{ group.permissions_count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h3 class="mb-0">Usuários ({{ users_count }})</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Ativo</th>
+                        <th>Perfil</th>
+                        <th>Grupos</th>
+                        <th>Último Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users_info %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.is_active }}</td>
+                            <td>{{ user.perfil }}</td>
+                            <td>{{ user.groups|join:", " }}</td>
+                            <td>{{ user.last_login }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

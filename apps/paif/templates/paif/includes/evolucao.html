@@ -1,0 +1,577 @@
+<style>
+    h2 {
+        text-align: center;
+        background-color: #28a745;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .expandable {
+        display: none;
+    }
+
+    .detalhes-membro {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-top: 5px;
+    }
+
+    .detalhes-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .detalhes-membro .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -10px;
+    }
+
+    .detalhes-membro .col-md-6 {
+        flex: 0 0 50%;
+        padding: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        color: #495057;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .form-group select,
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 0.9rem;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .detalhes-membro label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .btn-toggle {
+        background-color: #28a745;
+        color: white;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        font-size: 16px;
+        line-height: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-toggle:hover {
+        background-color: #218838;
+        transform: scale(1.1);
+    }
+
+    .btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .btn-add {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-toggle-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .evolucao-container {
+        margin-top: 20px;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    textarea {
+        width: 97%;
+        height: 100px;
+        resize: vertical;
+        font-size: 14px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Estilos para o novo layout de histórico de evoluções */
+    .historico-container {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .evolucao-card {
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .evolucao-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        cursor: pointer;
+    }
+    
+    .evolucao-header:hover {
+        background-color: #e9ecef;
+    }
+    
+    .evolucao-header-info {
+        flex: 1;
+    }
+    
+    .evolucao-data {
+        font-weight: bold;
+        color: #28a745;
+        margin-bottom: 5px;
+    }
+    
+    .evolucao-tecnico, .evolucao-cras {
+        font-size: 0.9em;
+        color: #6c757d;
+    }
+    
+    .evolucao-toggle {
+        margin-left: 10px;
+        color: #28a745;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    
+    .evolucao-body {
+        padding: 15px;
+        display: none;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .evolucao-body.visible {
+        display: block;
+    }
+    
+    .evolucao-description {
+        margin-bottom: 15px;
+        white-space: pre-wrap;
+        line-height: 1.5;
+    }
+    
+    .evolucao-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .info-field {
+        background-color: #f8f9fa;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        display: block;
+        width: 100%;
+        font-weight: bold;
+    }
+    
+    .info-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    /* Botões de ação */
+    .btn-edit {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    /* Novo formulário de evolução */
+    .nova-evolucao {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+    /* Adicionando estilo para identificar o tipo de registro no histórico */
+    .registro-tipo {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-left: 10px;
+        font-weight: bold;
+    }
+
+    .tipo-evolucao {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .tipo-familia {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* Estilo para a linha única de informações */
+    .info-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .info-row .info-field {
+        flex: 1;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    /* Estilo para os inputs da tabela */
+    .form-control {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    /* Adicionar estilo para o container de botões */
+    .botoes-acao-familia {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0 30px;
+        width: 100%;
+        clear: both;
+    }
+    
+    .botoes-acao-familia .btn {
+        padding: 10px 15px;
+        margin: 0; /* Remover margens que podem causar problemas */
+        flex-basis: auto;
+    }
+    
+    .botoes-acao-familia .btn:first-child {
+        margin-right: 10px;
+    }
+    
+    .botoes-acao-familia .btn:last-child {
+        margin-left: 10px;
+        flex-grow: 2; /* Faz o botão mais longo ocupar mais espaço */
+        max-width: 70%; /* Limita a largura máxima */
+    }
+</style>
+
+<h2>COMPOSIÇÃO DO GRUPO FAMILIAR</h2>
+<table id="familiaTable">
+    <thead>
+        <tr>
+            <th style="width: 40%;">Nome</th>
+            <th style="width: 20%;">Parentesco</th>
+            <th style="width: 20%;">Data Nasc.</th>
+            <th style="width: 08%;">Idade</th>
+            <th style="width: 10%;">Expandir</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><input type="text" class="form-control" name="nome[]"></td>
+            <td><input type="text" class="form-control" name="parentesco[]"></td>
+            <td><input type="date" class="form-control" name="data_nascimento[]" onchange="calcularIdade(this)"></td>
+            <td class="idade-cell"></td>
+            <td class="btn-toggle-cell">
+                <button class="btn btn-toggle" onclick="toggleDetalhes(this)">+</button>
+            </td>
+        </tr>
+        <tr class="expandable">
+            <td colspan="5">
+                <div class="detalhes-membro">
+                    <div class="detalhes-grid">
+                        <div class="form-group">
+                            <label>Frequência Escolar:</label>
+                            <select class="form-control">
+                                <option>Sim</option>
+                                <option>Não</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nome da Escola:</label>
+                            <input type="text" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Série:</label>
+                            <select class="form-control">
+                                <option>1º Ano</option>
+                                <option>2º Ano</option>
+                                <option>3º Ano</option>
+                                <option>4º Ano</option>
+                                <option>5º Ano</option>
+                                <option>6º Ano</option>
+                                <option>7º Ano</option>
+                                <option>8º Ano</option>
+                                <option>9º Ano</option>
+                                <option>Médio Incompleto</option>
+                                <option>Médio Completo</option>
+                                <option>Técnico Incompleto</option>
+                                <option>Técnico Completo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Turno:</label>
+                            <select class="form-control">
+                                <option>MANHÃ</option>
+                                <option>TARDE</option>
+                                <option>NOITE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Posição no Mercado de Trabalho:</label>
+                            <select class="form-control">
+                                <option>ESTUDANTE</option>
+                                <option>EMPREGADO</option>
+                                <option>DESEMPREGADO</option>
+                                <option>AUTÔNOMO</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Receita Nominal (R$):</label>
+                            <input type="text" class="form-control" value="0,00" oninput="formatarParaReal(this)">
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="botoes-acao-familia">
+    <button id="btn-adicionar-linha" class="btn btn-add">Adicionar Linha</button>
+    <button id="btn-registrar-alteracao" class="btn btn-add" style="background-color: #007bff;">Registrar Alteração na Composição Familiar</button>
+</div>
+
+<div class="evolucao-container">
+    <h2>Adicionar Nova Evolução</h2>
+    
+    <div class="nova-evolucao">
+        <div class="info-row">
+            <div id="data_atendimento_display" class="info-field">{{ data_atual }}</div>
+            <div id="nome_tecnico_display" class="info-field">{{ nome_tecnico|default:"USUÁRIO ATUAL" }}</div>
+            <div id="cras_display" class="info-field">{{ cras|default:"CRAS ATUAL" }}</div>
+        </div>
+        
+        <input type="hidden" id="data_atendimento" name="data_atendimento">
+        <input type="hidden" id="nome_tecnico" name="nome_tecnico" value="{{ nome_tecnico|default:'USUÁRIO ATUAL' }}">
+        <input type="hidden" id="cras" name="cras" value="{{ cras|default:'CRAS ATUAL' }}">
+        <input type="hidden" id="numero_paif" name="numero_paif" value="{% if ficha and ficha.numero_paif %}{{ ficha.numero_paif }}{% endif %}">
+        
+        <div class="form-group">
+            <label for="descricao_evolucao">Descrição do Atendimento:</label>
+            <textarea id="descricao_evolucao" name="descricao_evolucao" placeholder="Digite aqui a descrição do atendimento..." required></textarea>
+        </div>
+        
+        <button id="btn-adicionar-evolucao" class="btn btn-add">Registrar Atendimento</button>
+    </div>
+    
+    <h2>Histórico de Evolução</h2>
+    
+    <div class="historico-container" id="historicoContainer">
+    </div>
+</div>
+
+<script>
+    function toggleDetalhes(btn) {
+        const linha = btn.closest('tr');
+        const detalhes = linha.nextElementSibling;
+        
+        if (detalhes.style.display === 'none' || detalhes.style.display === '') {
+            detalhes.style.display = 'table-row';
+            btn.textContent = '-';
+        } else {
+            detalhes.style.display = 'none';
+            btn.textContent = '+';
+        }
+    }
+    
+    function formatarParaReal(campo) {
+        let valor = campo.value.replace(/\D/g, "");
+        valor = (valor / 100).toFixed(2);
+        valor = valor.replace(".", ",");
+        campo.value = "R$ " + valor;
+    }
+    
+    function calcularIdade(input) {
+        const dataNasc = new Date(input.value);
+        if (!isNaN(dataNasc.getTime())) {
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - dataNasc.getFullYear();
+            const m = hoje.getMonth() - dataNasc.getMonth();
+            
+            if (m < 0 || (m === 0 && hoje.getDate() < dataNasc.getDate())) {
+                idade--;
+            }
+            
+            const linha = input.closest('tr');
+            const idadeCell = linha.querySelector('.idade-cell');
+            idadeCell.textContent = idade;
+        }
+    }
+    
+    document.getElementById('btn-adicionar-linha').addEventListener('click', function() {
+        const tbody = document.querySelector('#familiaTable tbody');
+        const linhaOriginal = tbody.querySelector('tr:nth-child(1)');
+        const detalhesOriginal = tbody.querySelector('tr:nth-child(2)');
+        
+        const novaLinha = linhaOriginal.cloneNode(true);
+        const novosDetalhes = detalhesOriginal.cloneNode(true);
+        
+        novaLinha.querySelectorAll('input').forEach(input => input.value = '');
+        novaLinha.querySelector('.idade-cell').textContent = '';
+        
+        novosDetalhes.querySelectorAll('input').forEach(input => {
+            if (input.type === 'text' && input.className.includes('form-control')) {
+                input.value = input.className.includes('Receita') ? '0,00' : '';
+            }
+        });
+        
+        tbody.appendChild(novaLinha);
+        tbody.appendChild(novosDetalhes);
+    });
+    
+    document.getElementById('btn-registrar-alteracao').addEventListener('click', function() {
+        const membros = [];
+        const linhas = document.querySelectorAll('#familiaTable tbody tr:not(.expandable)');
+        
+        linhas.forEach(linha => {
+            const nome = linha.querySelector('input[name="nome[]"]').value;
+            
+            if (nome.trim()) {
+                const parentesco = linha.querySelector('input[name="parentesco[]"]').value;
+                const dataNasc = linha.querySelector('input[name="data_nascimento[]"]').value;
+                const idade = linha.querySelector('.idade-cell').textContent;
+                
+                const detalhes = linha.nextElementSibling;
+                const frequenciaEscolar = detalhes.querySelector('select').value;
+                const escola = detalhes.querySelectorAll('input')[0].value;
+                const turno = detalhes.querySelectorAll('select')[1].value;
+                const situacaoTrabalho = detalhes.querySelectorAll('select')[2].value;
+                const renda = detalhes.querySelectorAll('input')[1].value;
+                
+                membros.push({
+                    nome, parentesco, dataNasc, idade, 
+                    frequenciaEscolar, escola, turno, 
+                    situacaoTrabalho, renda
+                });
+            }
+        });
+        
+        if (membros.length === 0) {
+            alert("Adicione pelo menos um membro à família antes de registrar.");
+            return;
+        }
+        
+        console.log("Membros da família a registrar:", membros);
+        alert("Alteração na composição familiar registrada com sucesso!");
+    });
+    
+    document.getElementById('btn-adicionar-evolucao').addEventListener('click', function() {
+        const descricao = document.getElementById('descricao_evolucao').value;
+        
+        if (!descricao.trim()) {
+            alert("Por favor, preencha a descrição do atendimento");
+            return;
+        }
+        
+        const dados = {
+            data_atendimento: document.getElementById('data_atendimento').value || new Date().toISOString(),
+            nome_tecnico: document.getElementById('nome_tecnico').value,
+            cras: document.getElementById('cras').value,
+            numero_paif: document.getElementById('numero_paif').value,
+            descricao: descricao
+        };
+        
+        console.log("Dados do novo atendimento:", dados);
+        alert("Atendimento registrado com sucesso!");
+        
+        document.getElementById('descricao_evolucao').value = '';
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[name="data_nascimento[]"]').forEach(input => {
+            if (input.value) {
+                calcularIdade(input);
+            }
+        });
+    });
+</script>

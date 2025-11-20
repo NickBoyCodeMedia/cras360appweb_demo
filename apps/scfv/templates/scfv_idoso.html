@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SCFV Idosos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/scfv.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Barra de navegação superior com botões voltar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a href="{% url 'index' %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-tachometer-alt"></i> Painel
+            </a>
+            <a href="{% url 'scfv:index' %}" class="btn btn-outline-success">
+            <i class="fas fa-home"></i> Início SCFV
+            </a>
+        </div>
+        {% if modo == 'editar' %}
+        <a href="{% url 'scfv:consulta' %}" class="btn btn-outline-primary">
+            <i class="fas fa-search"></i> Voltar para Consulta
+        </a>
+        {% endif %}
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h2 class="text-center">
+                {% if modo == 'editar' %}
+                    Editar Cadastro - SCFV Idosos
+                {% else %}
+                    Ficha de Cadastro - SCFV Idosos
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form action="{% if modo == 'editar' %}{% url 'scfv:atualizar' id=id %}{% else %}{% url 'scfv:salvar' %}{% endif %}" method="post">
+                {% csrf_token %}
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="identificacao-tab" data-toggle="tab" data-target="#identificacao" type="button" role="tab" aria-controls="identificacao" aria-selected="true">
+                            <i class="fas fa-id-card"></i> Identificação
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="informacao-social-tab" data-toggle="tab" data-target="#informacao-social" type="button" role="tab" aria-controls="informacao-social" aria-selected="false">
+                            <i class="fas fa-info-circle"></i> Informação Social
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="avaliacao-tab" data-toggle="tab" data-target="#avaliacao" type="button" role="tab" aria-controls="avaliacao" aria-selected="false">
+                            <i class="fas fa-clipboard-list"></i> Avaliação
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contatos-tab" data-toggle="tab" data-target="#contatos" type="button" role="tab" aria-controls="contatos" aria-selected="false">
+                            <i class="fas fa-address-book"></i> Contatos de Referência
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="observacoes-tab" data-toggle="tab" data-target="#observacoes" type="button" role="tab" aria-controls="observacoes" aria-selected="false">
+                            <i class="fas fa-comment-alt"></i> Observações
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4" id="myTabContent">
+                    <!-- Aba de Identificação -->
+                    <div class="tab-pane fade show active" id="identificacao" role="tabpanel" aria-labelledby="identificacao-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="coletivos" class="form-label">Coletivos</label>
+                                <input type="text" class="form-control uppercase" id="coletivos" name="coletivos" 
+                                       value="{% if dados and dados.coletivos %}{{ dados.coletivos }}{% endif %}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="paif" class="form-label">PAIF</label>
+                                <input type="text" class="form-control uppercase" id="paif" name="paif" 
+                                       value="{% if dados and dados.paif %}{{ dados.paif }}{% endif %}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="demanda" class="form-label">Demanda</label>
+                                <select class="form-select" id="demanda" name="demanda">
+                                    <option value="" selected disabled>Selecione a Demanda</option>
+                                    <option value="ATUALIZAÇÃO" {% if dados and dados.demanda == 'ATUALIZAÇÃO' %}selected{% endif %}>ATUALIZAÇÃO</option>
+                                    <option value="INCLUSÃO" {% if dados and dados.demanda == 'INCLUSÃO' %}selected{% endif %}>INCLUSÃO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="nome_crianca" class="form-label">Nome Completo do(a) Idoso(a)</label>
+                                <input type="text" class="form-control uppercase" id="nome_crianca" name="nome_crianca" 
+                                       value="{% if dados and dados.nome_crianca %}{{ dados.nome_crianca }}{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="sexo" class="form-label">Sexo</label>
+                                <select class="form-select" id="sexo" name="sexo">
+                                    <option value="" selected disabled>Selecione o Sexo</option>
+                                    <option value="FEMININO">FEMININO</option>
+                                    <option value="MASCULINO">MASCULINO</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="data_nascimento" class="form-label">Data de nascimento</label>
+                                <input type="text" class="form-control date" id="data_nascimento" name="data_nascimento" placeholder="DD/MM/AAAA">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="naturalidade" class="form-label">Naturalidade</label>
+                                <input type="text" class="form-control uppercase" id="naturalidade" name="naturalidade">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="cpf_crianca" class="form-label">CPF do(a) Idoso(a)</label>
+                                <input type="text" class="form-control cpf" id="cpf_crianca" name="cpf_crianca">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nis_crianca" class="form-label">Número do NIS</label>
+                                <input type="text" class="form-control numeric" id="nis_crianca" name="nis_crianca">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="rg_crianca" class="form-label">RG</label>
+                                <input type="text" class="form-control" id="rg_crianca" name="rg_crianca">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="endereco" class="form-label">Endereço</label>
+                                <input type="text" class="form-control uppercase" id="endereco" name="endereco">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="bairro" class="form-label">Bairro</label>
+                                <input type="text" class="form-control uppercase" id="bairro" name="bairro">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="numero" class="form-label">Número</label>
+                                <input type="text" class="form-control numeric" id="numero" name="numero">
+                            </div>
+                            <div class="col-md-8">
+                                <label for="referencia" class="form-label">Referência</label>
+                                <input type="text" class="form-control uppercase" id="referencia" name="referencia">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="situacao_domicilio" class="form-label">Situação de Domicílio</label>
+                                <select class="form-select" id="situacao_domicilio" name="situacao_domicilio">
+                                    <option value="" selected disabled>Selecione a Situação de Domicílio</option>
+                                    <option value="Próprio">Próprio</option>
+                                    <option value="Alugado">Alugado</option>
+                                    <option value="Cedido">Cedido</option>
+                                    <option value="Ocupação">Ocupação</option>
+                                    <option value="Residência de Familiar">Residência de Familiar</option>
+                                    <option value="Instituição de Longa Permanência">Instituição de Longa Permanência</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="numero_pessoas_domicilio" class="form-label">Número de Pessoas no Domicílio</label>
+                                <input type="number" class="form-control" id="numero_pessoas_domicilio" name="numero_pessoas_domicilio" min="1">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3 mt-4">
+                            <div class="col-12">
+                                <h5>Contato de Emergência</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="nome_contato" class="form-label">Nome</label>
+                                <input type="text" class="form-control uppercase" id="nome_contato" name="nome_contato">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="parentesco_contato" class="form-label">Parentesco</label>
+                                <input type="text" class="form-control uppercase" id="parentesco_contato" name="parentesco_contato">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="telefone_contato" class="form-label">Telefone</label>
+                                <input type="text" class="form-control phone" id="telefone_contato" name="telefone_contato">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Informação Social -->
+                    <div class="tab-pane fade" id="informacao-social" role="tabpanel" aria-labelledby="informacao-social-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="renda_mensal" class="form-label">Renda Mensal (R$)</label>
+                                <input type="text" class="form-control money" id="renda_mensal" name="renda_mensal">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="profissao" class="form-label">Profissão/Ocupação</label>
+                                <input type="text" class="form-control uppercase" id="profissao" name="profissao">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Condições de Saúde</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="hipertensao" name="hipertensao" value="1">
+                                        <label class="form-check-label" for="hipertensao">
+                                            Hipertensão
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="diabetes" name="diabetes" value="1">
+                                        <label class="form-check-label" for="diabetes">
+                                            Diabetes
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="problemas_cardiacos" name="problemas_cardiacos" value="1">
+                                        <label class="form-check-label" for="problemas_cardiacos">
+                                            Problemas Cardíacos
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="artrite_artrose" name="artrite_artrose" value="1">
+                                        <label class="form-check-label" for="artrite_artrose">
+                                            Artrite/Artrose
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="osteoporose" name="osteoporose" value="1">
+                                        <label class="form-check-label" for="osteoporose">
+                                            Osteoporose
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="alzheimer" name="alzheimer" value="1">
+                                        <label class="form-check-label" for="alzheimer">
+                                            Alzheimer
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="parkinson" name="parkinson" value="1">
+                                        <label class="form-check-label" for="parkinson">
+                                            Parkinson
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="depressao" name="depressao" value="1">
+                                        <label class="form-check-label" for="depressao">
+                                            Depressão
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="outras_doencas" name="outras_doencas" value="1" onchange="toggleOutrosDoencas(this)">
+                                        <label class="form-check-label" for="outras_doencas">
+                                            Outras
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <input type="text" class="form-control" id="quais_outras_doencas" name="quais_outras_doencas" placeholder="Especifique outras doenças" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Avaliação -->
+                    <div class="tab-pane fade" id="avaliacao" role="tabpanel" aria-labelledby="avaliacao-tab">
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <h5>Situação Social</h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isolamento" name="isolamento" value="1">
+                                    <label class="form-check-label" for="isolamento">
+                                        Isolamento social
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="bolsa_familia" name="bolsa_familia" value="1">
+                                    <label class="form-check-label" for="bolsa_familia">
+                                        Bolsa Família
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="violencia_negligencia" name="violencia_negligencia" value="1">
+                                    <label class="form-check-label" for="violencia_negligencia">
+                                        Violência ou negligência
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="bpc_idoso" name="bpc_idoso" value="1">
+                                    <label class="form-check-label" for="bpc_idoso">
+                                        BPC IDOSO
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="fora_sistema" name="fora_sistema" value="1">
+                                    <label class="form-check-label" for="fora_sistema">
+                                        Sem acesso a serviços básicos
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="bpc_pcd" name="bpc_pcd" value="1">
+                                    <label class="form-check-label" for="bpc_pcd">
+                                        BPC PCD
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="acolhimento" name="acolhimento" value="1">
+                                    <label class="form-check-label" for="acolhimento">
+                                        Acolhimento institucional
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="aposentadoria" name="aposentadoria" value="1">
+                                    <label class="form-check-label" for="aposentadoria">
+                                        APOSENTADORIA
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pessoa_deficiencia" name="pessoa_deficiencia" value="1">
+                                    <label class="form-check-label" for="pessoa_deficiencia">
+                                        Pessoa com deficiência
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="outros" name="outros" value="1" onchange="toggleOutros(this)">
+                                    <label class="form-check-label" for="outros">
+                                        Outros
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <input type="text" class="form-control" id="qual_outros" name="qual_outros" placeholder="Qual? (se outros)" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Contatos de Referência -->
+                    <div class="tab-pane fade" id="contatos" role="tabpanel" aria-labelledby="contatos-tab">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="nome_contato_principal" class="form-label">Nome do Contato Principal</label>
+                                <input type="text" class="form-control uppercase" id="nome_contato_principal" name="nome_contato_principal">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="parentesco" class="form-label">Parentesco/Relação</label>
+                                <select class="form-select" id="parentesco" name="parentesco">
+                                    <option value="" selected disabled>Selecione</option>
+                                    <option value="FILHO(A)">FILHO(A)</option>
+                                    <option value="CÔNJUGE">CÔNJUGE</option>
+                                    <option value="IRMÃO(Ã)">IRMÃO(Ã)</option>
+                                    <option value="SOBRINHO(A)">SOBRINHO(A)</option>
+                                    <option value="CUIDADOR(A)">CUIDADOR(A)</option>
+                                    <option value="VIZINHO(A)">VIZINHO(A)</option>
+                                    <option value="OUTRO">OUTRO</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="telefone_contato_principal" class="form-label">Telefone</label>
+                                <input type="text" class="form-control phone" id="telefone_contato_principal" name="telefone_contato_principal">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="celular_contato" class="form-label">Celular</label>
+                                <input type="text" class="form-control phone" id="celular_contato" name="celular_contato">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="tem_curador" name="tem_curador" value="1" onchange="toggleCurador(this)">
+                                    <label class="form-check-label" for="tem_curador">
+                                        Possui curador/responsável legal
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="dados_curador" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label for="nome_curador" class="form-label">Nome do Curador/Responsável Legal</label>
+                                    <input type="text" class="form-control uppercase" id="nome_curador" name="nome_curador">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="cpf_curador" class="form-label">CPF do Curador</label>
+                                    <input type="text" class="form-control cpf" id="cpf_curador" name="cpf_curador">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rg_curador" class="form-label">RG do Curador</label>
+                                    <input type="text" class="form-control" id="rg_curador" name="rg_curador">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Observações -->
+                    <div class="tab-pane fade" id="observacoes" role="tabpanel" aria-labelledby="observacoes-tab">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="observacoes_texto" class="form-label">Observações</label>
+                                <textarea class="form-control" id="observacoes_texto" name="observacoes" rows="5">{% if dados and dados.observacoes %}{{ dados.observacoes }}{% endif %}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nome_responsavel_inscricao" class="form-label">Nome do Responsável pela Inscrição</label>
+                                <input type="text" class="form-control uppercase" id="nome_responsavel_inscricao" name="nome_responsavel_inscricao" 
+                                       value="{% if dados and dados.nome_responsavel_inscricao %}{{ dados.nome_responsavel_inscricao }}{% endif %}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="data_inscricao" class="form-label">Data da Inscrição</label>
+                                <input type="text" class="form-control" id="data_inscricao" name="data_inscricao" 
+                                       value="{% if dados and dados.data_inscricao %}{{ dados.data_inscricao }}{% else %}{{ data_atual }}{% endif %}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de ação fixos na parte inferior -->
+                <div class="row mt-4 border-top pt-3">
+                    <div class="col-md-6">
+                        <a href="{% url 'scfv:index' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                        <button type="button" onclick="history.back()" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-undo"></i> Cancelar
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> 
+                            {% if modo == 'editar' %}
+                                Atualizar Cadastro
+                            {% else %}
+                                Salvar Cadastro
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="{% static 'js/scfv.js' %}"></script>
+<script>
+    function toggleOutrosDoencas(checkbox) {
+        document.getElementById('quais_outras_doencas').disabled = !checkbox.checked;
+    }
+
+    function toggleCurador(checkbox) {
+        document.getElementById('dados_curador').style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    function toggleOutros(checkbox) {
+        document.getElementById('qual_outros').disabled = !checkbox.checked;
+    }
+    
+    function navegarParaAba(abaId) {
+        $('#myTab button[data-target="#' + abaId + '"]').tab('show');
+    }
+    
+    $(document).ready(function() {
+        // Máscara para campo de valor monetário
+        $('.money').mask('#.##0,00', {reverse: true});
+        
+        $('.cpf').mask('000.000.000-00');
+        $('.phone').mask('(00) 00000-0000');
+        $('.date').mask('00/00/0000');
+        $('.numeric').mask('0000000000');
+        
+        document.querySelectorAll('.uppercase').forEach(function(element) {
+            element.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+        
+        // Garantir que a primeira aba esteja ativa ao carregar
+        $('#identificacao-tab').tab('show');
+    });
+</script>
+{% endblock %}

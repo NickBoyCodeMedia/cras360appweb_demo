@@ -1,0 +1,8 @@
+<!-- Isso é apenas um exemplo, adapte ao seu menu específico -->
+
+<li class="nav-item">
+    <a class="nav-link {% if request.path|slice:'5' == '/scfv' %}active{% endif %}" href="{% url 'scfv:index' %}">
+        <i class="fas fa-child"></i>
+        <span>SCFV</span>
+    </a>
+</li>

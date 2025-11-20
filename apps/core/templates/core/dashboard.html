@@ -1,0 +1,25 @@
+<div class="row">
+    <!-- Cartões de módulos/funcionalidades -->
+    
+    <!-- Módulo de Recepção - visível apenas para usuários com perfil 'Recepção' ou admin -->
+    {% if user.is_superuser or user.perfil == 'Recepção' %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-door-open fa-4x text-success"></i>
+                </div>
+                <h5 class="card-title">Módulo de Recepção</h5>
+                <p class="card-text text-muted">
+                    Gerencie atendimentos, agendamentos e demandas espontâneas dos beneficiários.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+                <a href="{% url 'recepcao_index' %}" class="btn btn-success">
+                    <i class="fas fa-external-link-alt"></i> Acessar Módulo
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

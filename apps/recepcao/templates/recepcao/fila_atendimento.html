@@ -1,0 +1,654 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-users text-success"></i> 
+        Fila de Atendimento
+    </h1>
+    
+    <div class="row">
+        <!-- Coluna da Esquerda - Agendamentos e Demanda Espontânea -->
+        <div class="col-md-8">
+            <!-- Agendamentos do Dia -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Agendamentos do Dia</h5>
+                    <a href="{% url 'recepcao_novo_agendamento' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus"></i> Novo Agendamento
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if agendamentos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    <th>Beneficiário</th>
+                                    <th>Técnico</th>
+                                    <th>Tipo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for agendamento in agendamentos %}
+                                <tr>
+                                    <td>{{ agendamento.data_hora|time:"H:i" }}</td>
+                                    <td>{{ agendamento.beneficiario.nome }}</td>
+                                    <td>{{ agendamento.tecnico.nome_completo }}</td>
+                                    <td>{{ agendamento.tipo_atendimento }}</td>
+                                    <td>
+                                        {% if agendamento.status == 'Agendado' %}
+                                            <span class="badge badge-info">Aguardando</span>
+                                        {% elif agendamento.status == 'Em Andamento' %}
+                                            <span class="badge badge-primary">Em Andamento</span>
+                                        {% elif agendamento.status == 'Concluído' %}
+                                            <span class="badge badge-success">Concluído</span>
+                                        {% elif agendamento.status == 'Cancelado' %}
+                                            <span class="badge badge-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if agendamento.status == 'Agendado' %}
+                                            <a href="{% url 'recepcao_registrar_chegada' agendamento.id %}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Registrar Chegada
+                                            </a>
+                                        {% elif agendamento.status == 'Em Andamento' %}
+                                            <button class="btn btn-sm btn-info" disabled>
+                                                <i class="fas fa-spinner fa-spin"></i> Em Atendimento
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Não há agendamentos para hoje.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Demanda Espontânea -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-clock"></i> Demanda Espontânea</h5>
+                    <button class="btn btn-sm btn-light" data-toggle="modal" data-target="#modalDemandaEspontanea">
+                        <i class="fas fa-plus"></i> Nova Demanda Espontânea
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if demandas_espontaneas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Chegada</th>
+                                    <th>Beneficiário</th>
+                                    <th>Tipo</th>
+                                    <th>Técnico</th>
+                                    <th>Prioridade</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fila in demandas_espontaneas %}
+                                <tr>
+                                    <td>{{ fila.data_chegada|time:"H:i" }}</td>
+                                    <td>{{ fila.beneficiario.nome }}</td>
+                                    <td>{{ fila.tipo_atendimento }}</td>
+                                    <td>
+                                        {% if fila.tecnico %}
+                                            {{ fila.tecnico.nome_completo }}
+                                        {% else %}
+                                            <span class="text-muted">Não definido</span>
+                                            <button class="btn btn-sm btn-outline-primary ml-2 btn-selecionar-tecnico" 
+                                                    data-fila-id="{{ fila.id }}" 
+                                                    data-beneficiario="{{ fila.beneficiario.nome }}">
+                                                <i class="fas fa-user-plus"></i>
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fila.prioridade == 3 %}
+                                            <span class="badge badge-danger">Alta</span>
+                                        {% elif fila.prioridade == 2 %}
+                                            <span class="badge badge-warning">Média</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Normal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fila.status == 'Aguardando' %}
+                                            <span class="badge badge-info">Aguardando</span>
+                                        {% elif fila.status == 'Notificado' %}
+                                            <span class="badge badge-primary">Técnico Notificado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if fila.tecnico and fila.status == 'Aguardando' %}
+                                            <button class="btn btn-sm btn-warning btn-notificar-tecnico" data-fila-id="{{ fila.id }}">
+                                                <i class="fas fa-bell"></i> Notificar
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Não há demanda espontânea em espera.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Atendimentos Em Andamento -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Atendimentos em Andamento</h5>
+                </div>
+                <div class="card-body">
+                    {% if em_atendimento %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Beneficiário</th>
+                                    <th>Técnico</th>
+                                    <th>Tipo</th>
+                                    <th>Início</th>
+                                    <th>Tempo</th>
+                                    <th>Origem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fila in em_atendimento %}
+                                <tr>
+                                    <td>{{ fila.beneficiario.nome }}</td>
+                                    <td>{{ fila.tecnico.nome_completo }}</td>
+                                    <td>{{ fila.tipo_atendimento }}</td>
+                                    <td>{{ fila.data_atendimento|time:"H:i" }}</td>
+                                    <td>
+                                        <span class="temporizador" data-inicio="{{ fila.data_atendimento|date:'Y-m-d H:i:s' }}">
+                                            Calculando...
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if fila.agendamento %}
+                                            <span class="badge badge-info">Agendado</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Demanda Espontânea</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Não há atendimentos em andamento no momento.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Coluna da Direita - Status dos Técnicos e Atendimentos Concluídos -->
+        <div class="col-md-4">
+            <!-- Status dos Técnicos -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-check"></i> Status dos Técnicos</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for tecnico in tecnicos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ tecnico.nome_completo }}</strong>
+                                <br><small>{{ tecnico.perfil }}</small>
+                            </div>
+                            <span class="status-tecnico" data-id="{{ tecnico.id }}">
+                                {% if tecnico.status_atendimento == 'Disponível' %}
+                                    <span class="badge badge-success badge-pill">Disponível</span>
+                                {% elif tecnico.status_atendimento == 'Em Atendimento' %}
+                                    <span class="badge badge-danger badge-pill">Ocupado</span>
+                                {% elif tecnico.status_atendimento == 'Ausente' %}
+                                    <span class="badge badge-warning badge-pill">Ausente</span>
+                                {% else %}
+                                    <span class="badge badge-secondary badge-pill">Indefinido</span>
+                                {% endif %}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Atendimentos Concluídos Hoje -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Atendimentos Concluídos Hoje</h5>
+                </div>
+                <div class="card-body">
+                    {% if concluidos %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Beneficiário</th>
+                                    <th>Técnico</th>
+                                    <th>Horário</th>
+                                    <th>Duração</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fila in concluidos %}
+                                <tr>
+                                    <td>{{ fila.beneficiario.nome }}</td>
+                                    <td>{{ fila.tecnico.nome_completo }}</td>
+                                    <td>{{ fila.data_conclusao|time:"H:i" }}</td>
+                                    <td>
+                                        {% if fila.data_atendimento %}
+                                            {% with duracao=fila.data_conclusao|timeuntil:fila.data_atendimento %}
+                                                {{ duracao }}
+                                            {% endwith %}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Nenhum atendimento foi concluído hoje.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar Demanda Espontânea -->
+<div class="modal fade" id="modalDemandaEspontanea" tabindex="-1" role="dialog" aria-labelledby="modalDemandaEspontaneaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalDemandaEspontaneaLabel">
+                    <i class="fas fa-user-plus"></i> Registrar Demanda Espontânea
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formDemandaEspontanea" method="post" action="{% url 'recepcao_registrar_demanda_espontanea' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="busca_beneficiario">Buscar Beneficiário:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="busca_beneficiario" 
+                                   placeholder="Digite nome, CPF ou NIS">
+                            <input type="hidden" name="beneficiario_id" id="beneficiario_id" required>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-primary" id="btnBuscarBeneficiario">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Beneficiário não cadastrado? 
+                            <a href="#" data-dismiss="modal" data-toggle="modal" data-target="#novoBeneficiarioModal">
+                                Clique aqui para cadastrar
+                            </a>
+                        </small>
+                    </div>
+                    
+                    <div class="card mt-3 d-none" id="card_beneficiario_selecionado">
+                        <div class="card-header bg-light">
+                            <strong>Beneficiário Selecionado</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 id="nome_beneficiario">-</h5>
+                                    <p class="mb-1">CPF: <span id="cpf_beneficiario">-</span></p>
+                                    <p class="mb-0">Data de Nascimento: <span id="data_nascimento_beneficiario">-</span></p>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <button type="button" class="btn btn-sm btn-secondary" id="btnTrocarBeneficiario">
+                                        <i class="fas fa-exchange-alt"></i> Trocar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipo_atendimento">Tipo de Atendimento:</label>
+                                <select class="form-control" name="tipo_atendimento" id="tipo_atendimento" required>
+                                    <option value="" selected disabled>Selecione...</option>
+                                    <option value="Atendimento PAIF">Atendimento PAIF</option>
+                                    <option value="Atendimento SCFV">Atendimento SCFV</option>
+                                    <option value="Atualização Cadastral">Atualização Cadastral</option>
+                                    <option value="Orientação">Orientação</option>
+                                    <option value="Benefício Eventual">Benefício Eventual</option>
+                                    <option value="Encaminhamento">Encaminhamento</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="prioridade">Prioridade:</label>
+                                <select class="form-control" name="prioridade" id="prioridade" required>
+                                    <option value="1">Normal</option>
+                                    <option value="2">Média</option>
+                                    <option value="3">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tecnico_id">Técnico Responsável (opcional):</label>
+                        <select class="form-control" name="tecnico_id" id="tecnico_id">
+                            <option value="" selected>Selecionar depois</option>
+                            {% for tecnico in tecnicos %}
+                                <option value="{{ tecnico.id }}">{{ tecnico.nome_completo }} - {{ tecnico.perfil }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="observacao">Observações:</label>
+                        <textarea class="form-control" name="observacao" id="observacao" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnSalvarDemanda">
+                    <i class="fas fa-save"></i> Registrar Demanda
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para selecionar técnico -->
+<div class="modal fade" id="modalSelecionarTecnico" tabindex="-1" role="dialog" aria-labelledby="modalSelecionarTecnicoLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalSelecionarTecnicoLabel">Selecionar Técnico</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Selecione um técnico para atender <strong id="nomeBeneficiarioSelecao"></strong>:</p>
+                
+                <input type="hidden" id="filaIdSelecao">
+                
+                <div class="list-group">
+                    {% for tecnico in tecnicos %}
+                    <button type="button" class="list-group-item list-group-item-action btn-selecionar-tecnico-opcao" data-id="{{ tecnico.id }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ tecnico.nome_completo }}</strong>
+                                <br><small>{{ tecnico.perfil }}</small>
+                            </div>
+                            <span>
+                                {% if tecnico.status_atendimento == 'Disponível' %}
+                                    <span class="badge badge-success badge-pill">Disponível</span>
+                                {% elif tecnico.status_atendimento == 'Em Atendimento' %}
+                                    <span class="badge badge-danger badge-pill">Ocupado</span>
+                                {% else %}
+                                    <span class="badge badge-secondary badge-pill">Indefinido</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Resultados da Busca de Beneficiário -->
+<div class="modal fade" id="buscarBeneficiarioModal" tabindex="-1" role="dialog" aria-labelledby="buscarBeneficiarioModalLabel" aria-hidden="true">
+    <!-- Mesmo conteúdo do modal em novo_agendamento.html -->
+</div>
+
+<!-- Modal de Cadastro de Novo Beneficiário -->
+<div class="modal fade" id="novoBeneficiarioModal" tabindex="-1" role="dialog" aria-labelledby="novoBeneficiarioModalLabel" aria-hidden="true">
+    <!-- Conteúdo do modal de cadastro rápido -->
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Atualizar temporizadores a cada segundo
+    setInterval(atualizarTemporizadores, 1000);
+    
+    // Registrar demanda espontânea
+    document.getElementById('btnSalvarDemanda').addEventListener('click', function() {
+        const form = document.getElementById('formDemandaEspontanea');
+        if (!validarFormulario(form)) {
+            return;
+        }
+        
+        // Enviar via AJAX
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Verificar se precisa notificar técnico
+                if (data.tecnico_id) {
+                    // Perguntar se deseja notificar o técnico
+                    if (confirm(`Deseja notificar o técnico sobre este novo atendimento?`)) {
+                        // Enviar notificação via WebSocket se disponível
+                        if (window.notificacoes) {
+                            window.notificacoes.enviarNotificacao(
+                                data.tecnico_id,
+                                'atendimento_aguardando',
+                                data.beneficiario_nome,
+                                'Novo atendimento aguardando na recepção'
+                            );
+                        }
+                    }
+                }
+                
+                alert('Demanda registrada com sucesso!');
+                $('#modalDemandaEspontanea').modal('hide');
+                
+                // Recarregar a página para mostrar a nova demanda
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                alert('Erro ao registrar demanda: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao enviar formulário. Tente novamente.');
+        });
+    });
+    
+    // Notificar técnico sobre atendimento
+    document.querySelectorAll('.btn-notificar-tecnico').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filaId = this.getAttribute('data-fila-id');
+            
+            // Enviar requisição AJAX para notificar
+            fetch(`/recepcao/notificar-tecnico/${filaId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    
+                    // Atualizar visual do botão
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-check"></i> Notificado';
+                    
+                    // Converter badge de status para notificado
+                    const linha = this.closest('tr');
+                    const tdStatus = linha.querySelector('td:nth-child(6)');
+                    if (tdStatus) {
+                        tdStatus.innerHTML = '<span class="badge badge-primary">Técnico Notificado</span>';
+                    }
+                } else {
+                    alert('Erro ao notificar técnico: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao notificar técnico. Tente novamente.');
+            });
+        });
+    });
+    
+    // Selecionar técnico para demanda
+    document.querySelectorAll('.btn-selecionar-tecnico').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filaId = this.getAttribute('data-fila-id');
+            const beneficiario = this.getAttribute('data-beneficiario');
+            
+            document.getElementById('filaIdSelecao').value = filaId;
+            document.getElementById('nomeBeneficiarioSelecao').textContent = beneficiario;
+            
+            $('#modalSelecionarTecnico').modal('show');
+        });
+    });
+    
+    // Opções para selecionar técnico
+    document.querySelectorAll('.btn-selecionar-tecnico-opcao').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tecnicoId = this.getAttribute('data-id');
+            const filaId = document.getElementById('filaIdSelecao').value;
+            
+            // Enviar AJAX para atualizar técnico da fila
+            fetch(`/recepcao/atualizar-tecnico-fila/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    fila_id: filaId,
+                    tecnico_id: tecnicoId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Técnico atribuído com sucesso!');
+                    $('#modalSelecionarTecnico').modal('hide');
+                    
+                    // Recarregar a página para mostrar a atualização
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert('Erro ao atribuir técnico: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao atribuir técnico. Tente novamente.');
+            });
+        });
+    });
+    
+    // Validação de formulário
+    function validarFormulario(form) {
+        if (!form.beneficiario_id.value) {
+            alert('Selecione um beneficiário.');
+            return false;
+        }
+        
+        if (!form.tipo_atendimento.value) {
+            alert('Selecione um tipo de atendimento.');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Atualizar tempo de atendimento
+    function atualizarTemporizadores() {
+        document.querySelectorAll('.temporizador').forEach(elem => {
+            const dataInicio = new Date(elem.getAttribute('data-inicio'));
+            const agora = new Date();
+            const diffMilissegundos = agora - dataInicio;
+            
+            // Formatar tempo decorrido
+            let segundos = Math.floor(diffMilissegundos / 1000);
+            let minutos = Math.floor(segundos / 60);
+            let horas = Math.floor(minutos / 60);
+            
+            segundos %= 60;
+            minutos %= 60;
+            
+            const tempoFormatado = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+            elem.textContent = tempoFormatado;
+        });
+    }
+    
+    // Função para obter o token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

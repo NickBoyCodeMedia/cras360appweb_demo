@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnóstico de Permissões - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>
+        <i class="fas fa-bug text-warning"></i> 
+        Diagnóstico de Permissões de Relatórios
+    </h1>
+    
+    <div class="alert alert-warning">
+        <i class="fas fa-info-circle"></i> 
+        Esta página mostra informações de diagnóstico para ajudar a resolver problemas de permissão.
+        <strong>Importante:</strong> Esta página só deve ser usada em ambiente de desenvolvimento.
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Informações do Usuário</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                    {% for key, value in user_info.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Informações do Perfil</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                    {% for key, value in perfil_info.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>
+                            {% if value|dictsortreversed %}
+                                <ul>
+                                {% for subkey, subvalue in value.items %}
+                                    <li><strong>{{ subkey }}:</strong> {{ subvalue }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Informações da Sessão</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                    {% for key, value in session_info.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">Informações do META</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                    {% for key, value in meta_info.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Verificação de Permissões</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Recurso</th>
+                        <th>Tem Permissão?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in permissoes.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>
+                            {% if value %}
+                            <span class="badge bg-success">Sim</span>
+                            {% else %}
+                            <span class="badge bg-danger">Não</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="text-center mb-4">
+        <a href="{% url 'relatorios:index' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar para Relatórios
+        </a>
+    </div>
+</div>
+{% endblock %}

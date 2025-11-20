@@ -1,0 +1,621 @@
+{% extends 'base.html' %}
+
+{% block title %}Recepção - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-door-open text-success"></i> Módulo de Recepção
+    </h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Agendamentos do Dia</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Data: {{ data_atual }}</p>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Nome</th>
+                                    <th>Motivo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for agendamento in agendamentos_dia %}
+                                <tr>
+                                    <td>{{ agendamento.hora }}</td>
+                                    <td>{{ agendamento.nome }}</td>
+                                    <td>{{ agendamento.motivo }}</td>
+                                    <td>
+                                        {% if agendamento.status == 'Confirmado' %}
+                                            <span class="badge badge-success">Confirmado</span>
+                                        {% elif agendamento.status == 'Pendente' %}
+                                            <span class="badge badge-warning">Pendente</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{{ agendamento.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" title="Registrar Chegada">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-info" title="Detalhes">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Atendimentos em Andamento</h5>
+                        <button class="btn btn-light btn-sm" data-toggle="modal" data-target="#notificarTecnicoModal">
+                            <i class="fas fa-bell"></i> Notificar Técnico
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Acompanhe o status dos atendimentos em andamento no CRAS.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Técnico</th>
+                                    <th>Sala</th>
+                                    <th>Início</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Maria Santos</td>
+                                    <td>Carlos Técnico PAIF</td>
+                                    <td>Sala 02</td>
+                                    <td>09:15</td>
+                                    <td><span class="badge badge-primary">Em Atendimento</span></td>
+                                </tr>
+                                <tr>
+                                    <td>José Oliveira</td>
+                                    <td>Ana Técnico SCFV</td>
+                                    <td>Sala 03</td>
+                                    <td>08:45</td>
+                                    <td><span class="badge badge-primary">Em Atendimento</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'recepcao_novo_agendamento' %}" class="btn btn-success btn-lg btn-block">
+                            <i class="fas fa-calendar-plus fa-lg mr-2"></i> Novo Agendamento
+                        </a>
+                        
+                        <a href="{% url 'recepcao_agendamento' %}" class="btn btn-outline-success btn-lg btn-block">
+                            <i class="fas fa-calendar-alt fa-lg mr-2"></i> Gerenciamento de Agendamentos
+                        </a>
+                        
+                        <a href="{% url 'recepcao_busca' %}" class="btn btn-outline-success btn-lg btn-block">
+                            <i class="fas fa-search fa-lg mr-2"></i> Buscar Beneficiário
+                        </a>
+                        
+                        <!-- Botão modificado de modal para link direto -->
+                        <a href="{% url 'recepcao_demanda_espontanea' %}" class="btn btn-outline-primary btn-lg btn-block">
+                            <i class="fas fa-user-plus fa-lg mr-2"></i> Registrar Demanda Espontânea
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Técnicos Disponíveis</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Carlos Técnico PAIF
+                            <span class="badge badge-danger badge-pill">Ocupado</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Ana Técnico SCFV
+                            <span class="badge badge-danger badge-pill">Ocupado</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            João Assistente
+                            <span class="badge badge-success badge-pill">Disponível</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Silvia Pedagoga
+                            <span class="badge badge-success badge-pill">Disponível</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-circle"></i> Informações Importantes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Atenção!</strong> Reunião de equipe hoje às 17h.
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>Novo!</strong> Grupo de SCFV para idosos começará na próxima semana.
+                    </div>
+                    <hr>
+                    <h6>Próximos Feriados:</h6>
+                    <ul>
+                        <li>15/06 - Corpus Christi</li>
+                        <li>24/06 - São João</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Notificação para Técnicos -->
+<div class="modal fade" id="notificarTecnicoModal" tabindex="-1" role="dialog" aria-labelledby="notificarTecnicoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="notificarTecnicoModalLabel"><i class="fas fa-bell"></i> Notificar Técnico</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formNotificacao">
+                    <div class="form-group">
+                        <label for="tecnicoNotificacao">Selecione o Técnico:</label>
+                        <select class="form-control" id="tecnicoNotificacao" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            {% for tecnico in tecnicos_disponiveis %}
+                                <option value="{{ tecnico.id }}" data-perfil="{{ tecnico.perfil }}">{{ tecnico.nome_completo }} - {{ tecnico.perfil }}</option>
+                            {% endfor %}
+                            <option value="1" data-perfil="Assistente Social">Carlos Técnico PAIF</option>
+                            <option value="2" data-perfil="Técnico SCFV">Ana Técnico SCFV</option>
+                            <option value="3" data-perfil="Assistente Social">João Assistente</option>
+                            <option value="4" data-perfil="Pedagogo">Silvia Pedagoga</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoNotificacao">Tipo de Notificação:</label>
+                        <select class="form-control" id="tipoNotificacao" required>
+                            <option value="atendimento_aguardando">Atendimento Aguardando</option>
+                            <option value="urgente">Caso Urgente</option>
+                            <option value="informacao">Informação</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomeBeneficiario">Nome do Beneficiário:</label>
+                        <input type="text" class="form-control" id="nomeBeneficiario" placeholder="Opcional">
+                    </div>
+                    <div class="form-group">
+                        <label for="mensagemNotificacao">Mensagem:</label>
+                        <textarea class="form-control" id="mensagemNotificacao" rows="3" placeholder="Informações adicionais..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnEnviarNotificacao">Enviar Notificação</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar Demanda Espontânea -->
+<div class="modal fade" id="modalDemandaEspontanea" tabindex="-1" role="dialog" aria-labelledby="modalDemandaEspontaneaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalDemandaEspontaneaLabel">
+                    <i class="fas fa-user-plus"></i> Registrar Demanda Espontânea
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formDemandaEspontanea" method="post" action="{% url 'recepcao_registrar_demanda_espontanea' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="busca_beneficiario">Buscar Beneficiário:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="busca_beneficiario" 
+                                   placeholder="Digite nome, CPF ou NIS">
+                            <input type="hidden" name="beneficiario_id" id="beneficiario_id" required>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-primary" id="btnBuscarBeneficiario">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Beneficiário não cadastrado? 
+                            <a href="#" data-dismiss="modal" data-toggle="modal" data-target="#novoBeneficiarioModal">
+                                Clique aqui para cadastrar
+                            </a>
+                        </small>
+                    </div>
+                    
+                    <div class="card mt-3 d-none" id="card_beneficiario_selecionado">
+                        <div class="card-header bg-light">
+                            <strong>Beneficiário Selecionado</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 id="nome_beneficiario">-</h5>
+                                    <p class="mb-1">CPF: <span id="cpf_beneficiario">-</span></p>
+                                    <p class="mb-0">Data de Nascimento: <span id="data_nascimento_beneficiario">-</span></p>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <button type="button" class="btn btn-sm btn-secondary" id="btnTrocarBeneficiario">
+                                        <i class="fas fa-exchange-alt"></i> Trocar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipo_atendimento">Tipo de Atendimento:</label>
+                                <select class="form-control" name="tipo_atendimento" id="tipo_atendimento" required>
+                                    <option value="" selected disabled>Selecione...</option>
+                                    <option value="Atendimento PAIF">Atendimento PAIF</option>
+                                    <option value="Atendimento SCFV">Atendimento SCFV</option>
+                                    <option value="Atualização Cadastral">Atualização Cadastral</option>
+                                    <option value="Orientação">Orientação</option>
+                                    <option value="Benefício Eventual">Benefício Eventual</option>
+                                    <option value="Encaminhamento">Encaminhamento</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="prioridade">Prioridade:</label>
+                                <select class="form-control" name="prioridade" id="prioridade" required>
+                                    <option value="1">Normal</option>
+                                    <option value="2">Média</option>
+                                    <option value="3">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tecnico_id">Técnico Responsável (opcional):</label>
+                        <select class="form-control" name="tecnico_id" id="tecnico_id">
+                            <option value="" selected>Selecionar depois</option>
+                            {% for tecnico in tecnicos_disponiveis %}
+                                <option value="{{ tecnico.id }}">{{ tecnico.nome_completo }} - {{ tecnico.perfil }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="observacao">Observações:</label>
+                        <textarea class="form-control" name="observacao" id="observacao" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnSalvarDemanda">
+                    <i class="fas fa-save"></i> Registrar Demanda
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Resultados da Busca de Beneficiário -->
+<div class="modal fade" id="buscarBeneficiarioModal" tabindex="-1" role="dialog" aria-labelledby="buscarBeneficiarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="buscarBeneficiarioModalLabel">Resultados da Busca</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="resultados-busca-container">
+                    <p class="text-center text-muted">Os resultados da busca aparecerão aqui.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cadastro de Novo Beneficiário -->
+<div class="modal fade" id="novoBeneficiarioModal" tabindex="-1" role="dialog" aria-labelledby="novoBeneficiarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="novoBeneficiarioModalLabel">Cadastro Rápido de Beneficiário</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulário simplificado para cadastro rápido -->
+                <form id="formCadastroBeneficiario">
+                    <!-- Dados básicos do beneficiário -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnSalvarBeneficiario">
+                    <i class="fas fa-save"></i> Salvar Beneficiário
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Adicionar script para controle de notificações -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar WebSocket para notificações em tempo real
+        const notificacoesSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/notificacoes/'
+        );
+
+        // Ao enviar notificação
+        document.getElementById('btnEnviarNotificacao').addEventListener('click', function() {
+            const tecnico = document.getElementById('tecnicoNotificacao');
+            const tipo = document.getElementById('tipoNotificacao');
+            const nome = document.getElementById('nomeBeneficiario');
+            const mensagem = document.getElementById('mensagemNotificacao');
+            
+            if (!tecnico.value || !tipo.value || !mensagem.value) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+            
+            // Preparar dados da notificação
+            const notificacao = {
+                tipo: 'notificar_tecnico',
+                tecnico_id: tecnico.value,
+                tecnico_nome: tecnico.options[tecnico.selectedIndex].text,
+                tipo_notificacao: tipo.value,
+                beneficiario: nome.value || 'Não informado',
+                mensagem: mensagem.value,
+                origem: 'Recepção',
+                data_hora: new Date().toISOString()
+            };
+            
+            // Enviar via WebSocket
+            notificacoesSocket.send(JSON.stringify(notificacao));
+            
+            // Exibir confirmação
+            alert('Notificação enviada com sucesso!');
+            $('#notificarTecnicoModal').modal('hide');
+            
+            // Limpar formulário
+            document.getElementById('formNotificacao').reset();
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Funcionalidade do botão de busca de beneficiário
+        document.getElementById('btnBuscarBeneficiario')?.addEventListener('click', function() {
+            const termo = document.getElementById('busca_beneficiario').value;
+            if (!termo) {
+                alert('Por favor, digite um termo para busca.');
+                return;
+            }
+            
+            // Fazer requisição AJAX para buscar beneficiário
+            fetch(`/api/beneficiarios/buscar/?termo=${encodeURIComponent(termo)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.beneficiarios && data.beneficiarios.length > 0) {
+                        // Mostrar resultados em modal
+                        const container = document.getElementById('resultados-busca-container');
+                        container.innerHTML = '';
+                        
+                        const table = document.createElement('table');
+                        table.className = 'table table-hover';
+                        
+                        // Cabeçalho da tabela
+                        const thead = document.createElement('thead');
+                        thead.innerHTML = `
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Data Nascimento</th>
+                                <th>Ação</th>
+                            </tr>
+                        `;
+                        
+                        const tbody = document.createElement('tbody');
+                        
+                        // Adicionar linhas para cada beneficiário
+                        data.beneficiarios.forEach(b => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${b.nome_completo}</td>
+                                <td>${b.cpf || 'Não informado'}</td>
+                                <td>${b.data_nascimento || 'Não informado'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-success btn-selecionar-beneficiario"
+                                            data-id="${b.id}"
+                                            data-nome="${b.nome_completo}"
+                                            data-cpf="${b.cpf || ''}"
+                                            data-nascimento="${b.data_nascimento || ''}">
+                                        <i class="fas fa-check"></i> Selecionar
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                        
+                        table.appendChild(thead);
+                        table.appendChild(tbody);
+                        container.appendChild(table);
+                        
+                        // Adicionar listeners aos botões de seleção
+                        document.querySelectorAll('.btn-selecionar-beneficiario').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const id = this.getAttribute('data-id');
+                                const nome = this.getAttribute('data-nome');
+                                const cpf = this.getAttribute('data-cpf');
+                                const nascimento = this.getAttribute('data-nascimento');
+                                
+                                // Preencher dados do beneficiário selecionado
+                                document.getElementById('beneficiario_id').value = id;
+                                document.getElementById('nome_beneficiario').textContent = nome;
+                                document.getElementById('cpf_beneficiario').textContent = cpf || 'Não informado';
+                                document.getElementById('data_nascimento_beneficiario').textContent = nascimento || 'Não informado';
+                                
+                                // Mostrar card do beneficiário selecionado
+                                document.getElementById('card_beneficiario_selecionado').classList.remove('d-none');
+                                
+                                // Fechar modal de busca
+                                $('#buscarBeneficiarioModal').modal('hide');
+                            });
+                        });
+                        
+                        // Abrir modal com resultados
+                        $('#buscarBeneficiarioModal').modal('show');
+                        
+                    } else {
+                        alert('Nenhum beneficiário encontrado com este termo. Tente outro termo ou cadastre um novo beneficiário.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar beneficiário:', error);
+                    alert('Erro ao buscar beneficiário. Por favor, tente novamente.');
+                });
+        });
+        
+        // Botão para trocar beneficiário
+        document.getElementById('btnTrocarBeneficiario')?.addEventListener('click', function() {
+            document.getElementById('busca_beneficiario').value = '';
+            document.getElementById('beneficiario_id').value = '';
+            document.getElementById('card_beneficiario_selecionado').classList.add('d-none');
+        });
+        
+        // Botão para salvar demanda espontânea
+        document.getElementById('btnSalvarDemanda')?.addEventListener('click', function() {
+            const form = document.getElementById('formDemandaEspontanea');
+            
+            // Validar formulário
+            if (!form.beneficiario_id.value) {
+                alert('Selecione um beneficiário.');
+                return;
+            }
+            
+            if (!form.tipo_atendimento.value) {
+                alert('Selecione um tipo de atendimento.');
+                return;
+            }
+            
+            // Enviar via AJAX
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Verificar se precisa notificar técnico
+                    if (data.tecnico_id) {
+                        // Perguntar se deseja notificar o técnico
+                        if (confirm(`Deseja notificar o técnico sobre este novo atendimento?`)) {
+                            // Enviar notificação via WebSocket se disponível
+                            if (window.notificacoes) {
+                                window.notificacoes.enviarNotificacao(
+                                    data.tecnico_id,
+                                    'atendimento_aguardando',
+                                    data.beneficiario_nome,
+                                    'Novo atendimento aguardando na recepção'
+                                );
+                            }
+                        }
+                    }
+                    
+                    alert('Demanda registrada com sucesso!');
+                    $('#modalDemandaEspontanea').modal('hide');
+                    
+                    // Limpar formulário
+                    form.reset();
+                    document.getElementById('card_beneficiario_selecionado').classList.add('d-none');
+                } else {
+                    alert('Erro ao registrar demanda: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao enviar formulário. Tente novamente.');
+            });
+        });
+        
+        // Função para obter o token CSRF dos cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

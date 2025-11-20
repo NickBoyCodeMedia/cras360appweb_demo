@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Novo Agendamento - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-calendar-plus text-success"></i> Novo Agendamento
+        </h1>
+        <a href="{% url 'recepcao_agendamento' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Buscar Beneficiário</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="busca_beneficiario">Buscar por Nome, CPF ou NIS:</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="busca_beneficiario" placeholder="Digite nome, CPF ou NIS do beneficiário">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" id="btnBuscarBeneficiario">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+                <small class="form-text text-muted">
+                    Digite qualquer nome para ver resultados de exemplo. Use "nao" ou "404" para simular "não encontrado".
+                </small>
+            </div>
+            
+            <!-- Resultados da busca -->
+            <div id="resultado-busca" class="mt-4" style="display: none;"></div>
+            
+            <!-- Mensagem para caso de beneficiário não encontrado -->
+            <div id="nao-encontrado" class="alert alert-warning mt-4" style="display: none;">
+                <h5><i class="fas fa-exclamation-triangle"></i> Beneficiário não encontrado</h5>
+                <p>Não encontramos registros para o beneficiário com os dados informados.</p>
+                <div class="mt-3 text-center">
+                    <a href="{% url 'recepcao_demanda_espontanea' %}" class="btn btn-success">
+                        <i class="fas fa-clipboard-list"></i> Registrar como Demanda Espontânea
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulário de agendamento (inicialmente oculto) -->
+    <div id="formulario-agendamento" class="card shadow-sm" style="display: none;">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Dados do Agendamento</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" id="form-agendamento">
+                {% csrf_token %}
+                
+                <!-- Dados do Beneficiário -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <strong>Beneficiário Selecionado</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <h5 id="nome-beneficiario"></h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p><strong>CPF:</strong> <span id="cpf-beneficiario"></span></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>NIS:</strong> <span id="nis-beneficiario"></span></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>PAIF:</strong> <span id="paif-beneficiario"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-right">
+                                <button type="button" class="btn btn-sm btn-secondary" id="btnTrocarBeneficiario">
+                                    <i class="fas fa-exchange-alt"></i> Trocar Beneficiário
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="beneficiario_id" id="beneficiario-id">
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="tipo-atendimento">Tipo de Atendimento:</label>
+                            <select name="tipo_atendimento" id="tipo-atendimento" class="form-control" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="PAIF">PAIF</option>
+                                <option value="SCFV">SCFV</option>
+                                <option value="Cadastro Único">Cadastro Único</option>
+                                <option value="Benefício Eventual">Benefício Eventual</option>
+                                <option value="Psicológico">Atendimento Psicológico</option>
+                                <option value="Orientação">Orientação Social</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="data-atendimento">Data:</label>
+                            <input type="date" name="data" id="data-atendimento" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="tecnico-atendimento">Técnico:</label>
+                            <select name="tecnico" id="tecnico-atendimento" class="form-control" required>
+                                <option value="">Selecione um técnico</option>
+                                <option value="1">Carlos Silva - Assistente Social</option>
+                                <option value="2">Ana Souza - Psicóloga</option>
+                                <option value="3">Pedro Santos - Técnico PAIF</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="hora-atendimento">Horário:</label>
+                            <select name="hora" id="hora-atendimento" class="form-control" required>
+                                <option value="">Selecione o horário</option>
+                                <option value="08:00">08:00</option>
+                                <option value="09:00">09:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="13:00">13:00</option>
+                                <option value="14:00">14:00</option>
+                                <option value="15:00">15:00</option>
+                                <option value="16:00">16:00</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-4">
+                    <label for="observacao">Observações:</label>
+                    <textarea name="observacao" id="observacao" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="text-center">
+                    <button type="submit" class="btn btn-lg btn-success">
+                        <i class="fas fa-calendar-check"></i> Confirmar Agendamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos DOM
+    const resultadoBusca = document.getElementById('resultado-busca');
+    const naoEncontrado = document.getElementById('nao-encontrado');
+    const formularioAgendamento = document.getElementById('formulario-agendamento');
+    const btnBuscar = document.getElementById('btnBuscarBeneficiario');
+    const inputBusca = document.getElementById('busca_beneficiario');
+    
+    // Configurar data mínima como hoje
+    const dataInput = document.getElementById('data-atendimento');
+    const hoje = new Date().toISOString().split('T')[0];
+    dataInput.setAttribute('min', hoje);
+    dataInput.value = hoje;
+    
+    // Função para buscar beneficiário
+    function buscarBeneficiario() {
+        const termo = inputBusca.value.trim();
+        
+        if (!termo) {
+            alert('Por favor, digite um nome, CPF ou NIS para busca');
+            return;
+        }
+        
+        // Limpar resultados anteriores
+        resultadoBusca.style.display = 'none';
+        naoEncontrado.style.display = 'none';
+        formularioAgendamento.style.display = 'none';
+        
+        // Simulação de resposta para demonstração (enquanto API não estiver funcionando)
+        simularBuscaBeneficiario(termo);
+        
+        /*
+        // COMENTADO ATÉ QUE A API ESTEJA FUNCIONANDO
+        // Fazer requisição AJAX
+        fetch(`/api/beneficiarios/buscar/?termo=${encodeURIComponent(termo)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.beneficiarios || data.beneficiarios.length === 0) {
+                    // Não encontrou beneficiários
+                    naoEncontrado.style.display = 'block';
+                } else {
+                    // Mostrar resultados
+                    mostrarResultadosBusca(data.beneficiarios);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao buscar beneficiário. Por favor, tente novamente.');
+                
+                // Para fins de DEMO, mostrar opções de "não encontrado"
+                naoEncontrado.style.display = 'block';
+            });
+        */
+    }
+    
+    // Função para simular busca enquanto a API não está disponível
+    function simularBuscaBeneficiario(termo) {
+        const termoBaixo = termo.toLowerCase();
+        
+        // Simular "não encontrado" para palavras-chave específicas
+        if (termoBaixo.includes('404') || termoBaixo.includes('nao') || termoBaixo.includes('não')) {
+            naoEncontrado.style.display = 'block';
+            return;
+        }
+        
+        // Dados simulados para qualquer outro termo
+        const beneficiariosMock = [
+            {
+                id: 1,
+                nome_completo: `${termo.charAt(0).toUpperCase() + termo.slice(1)} da Silva`,
+                cpf: '123.456.789-00',
+                nis: '12345678901',
+                paif: true
+            },
+            {
+                id: 2,
+                nome_completo: `Maria ${termo.charAt(0).toUpperCase() + termo.slice(1)}`,
+                cpf: '987.654.321-00',
+                nis: '10987654321',
+                paif: false
+            }
+        ];
+        
+        mostrarResultadosBusca(beneficiariosMock);
+    }
+    
+    // Função para mostrar resultados da busca
+    function mostrarResultadosBusca(beneficiarios) {
+        resultadoBusca.innerHTML = '';
+        
+        // Criar tabela de resultados
+        const table = document.createElement('table');
+        table.className = 'table table-hover';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>NIS</th>
+                    <th>PAIF</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+        
+        const tbody = table.querySelector('tbody');
+        
+        beneficiarios.forEach(b => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${b.nome_completo}</td>
+                <td>${b.cpf || 'Não informado'}</td>
+                <td>${b.nis || 'Não informado'}</td>
+                <td>${b.paif ? 'Sim' : 'Não'}</td>
+                <td>
+                    <button class="btn btn-sm btn-success btn-selecionar-beneficiario" 
+                            data-id="${b.id}" 
+                            data-nome="${b.nome_completo}" 
+                            data-cpf="${b.cpf || 'Não informado'}" 
+                            data-nis="${b.nis || 'Não informado'}" 
+                            data-paif="${b.paif ? 'Sim' : 'Não'}">
+                        <i class="fas fa-check"></i> Selecionar
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        resultadoBusca.appendChild(table);
+        resultadoBusca.style.display = 'block';
+        
+        // Adicionar eventos aos botões de seleção
+        document.querySelectorAll('.btn-selecionar-beneficiario').forEach(btn => {
+            btn.addEventListener('click', function() {
+                selecionarBeneficiario(
+                    this.getAttribute('data-id'),
+                    this.getAttribute('data-nome'),
+                    this.getAttribute('data-cpf'),
+                    this.getAttribute('data-nis'),
+                    this.getAttribute('data-paif')
+                );
+            });
+        });
+    }
+    
+    // Função para selecionar um beneficiário
+    function selecionarBeneficiario(id, nome, cpf, nis, paif) {
+        // Preencher dados no formulário
+        document.getElementById('beneficiario-id').value = id;
+        document.getElementById('nome-beneficiario').textContent = nome;
+        document.getElementById('cpf-beneficiario').textContent = cpf;
+        document.getElementById('nis-beneficiario').textContent = nis;
+        document.getElementById('paif-beneficiario').textContent = paif;
+        
+        // Esconder resultados e mostrar formulário
+        resultadoBusca.style.display = 'none';
+        formularioAgendamento.style.display = 'block';
+    }
+    
+    // Eventos
+    btnBuscar.addEventListener('click', buscarBeneficiario);
+    
+    inputBusca.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarBeneficiario();
+        }
+    });
+    
+    // Botão para trocar beneficiário
+    document.getElementById('btnTrocarBeneficiario').addEventListener('click', function() {
+        formularioAgendamento.style.display = 'none';
+        resultadoBusca.style.display = 'block';
+    });
+});
+</script>
+{% endblock %}

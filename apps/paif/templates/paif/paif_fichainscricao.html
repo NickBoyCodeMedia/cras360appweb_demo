@@ -1,0 +1,638 @@
+<style>
+        form {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: white;
+        }
+        h2 {
+            text-align: center;
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row div {
+            flex: 1;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .checkbox-group label {
+            margin-right: 15px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Two-column layout */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Three-column layout */
+        .three-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        /* Three-column layout */
+        .four-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Estilos para alinhar melhor os radio buttons */
+        input[type="radio"] {
+            margin-right: 5px;
+            vertical-align: middle;
+            width: auto; /* Sobrescreve a largura 100% definida para todos os inputs */
+        }
+        
+        /* Ajustar os labels que contêm radio buttons */
+        label input[type="radio"] {
+            margin-right: 8px;
+        }
+        /* Ajustar os labels dentro das colunas */
+        .three-columns label, .two-columns label, .four-columns label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        /* Quatro-colunas layout */
+        .four-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 20px;
+        }    
+        /* Ajustar campos de texto que aparecem dentro de labels de radio */
+        label input[type="text"] {
+            width: auto;
+            margin-left: 8px;
+            display: inline-block;
+        }
+        
+        /* Ajustar o espaçamento nos fieldsets */
+        fieldset {
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+
+
+    <form>
+        <h2>Ficha de Inscrição do PAIF</h2>
+
+        <div class="row">
+            <div>
+                <label>Data:</label>
+                <input type="date" name="data" value="{% if ficha and ficha.data %}{{ ficha.data|date:'Y-m-d' }}{% endif %}">
+            </div>
+            <div>
+                <label>Tipo:</label>
+                <select name="tipo">
+                    <option value="inclusao" {% if ficha and ficha.tipo == 'inclusao' %}selected{% endif %}>Inclusão</option>
+                    <option value="atualizacao" {% if ficha and ficha.tipo == 'atualizacao' %}selected{% endif %}>Atualização</option>
+                </select>
+            </div>
+            <div>
+                <label>CRAS:</label>
+                <select name="cras" id="cras_select" required>
+                    {% if ficha and ficha.cras %}
+                        <option value="{{ ficha.cras.id }}" selected>{{ ficha.cras.nome }}</option>
+                    {% elif cras_atual_id and cras_atual %}
+                        <option value="{{ cras_atual_id }}" selected>{{ cras_atual }}</option>
+                    {% else %}
+                        <option value="" disabled selected>Selecione o CRAS</option>
+                    {% endif %}
+                    <!-- Aqui você precisará carregar dinamicamente os CRAS disponíveis -->
+                    <!-- Exemplo: -->
+                    <option value="{{ cras_atual_id }}">{{ cras_atual }}</option>
+                </select>
+            </div>             
+            <div>
+                <label>PAIF:</label>
+                <input type="text" name="numero_paif" id="numero_paif_input" autocomplete="off" readonly value="{% if ficha and ficha.numero_paif %}{{ ficha.numero_paif }}{% else %}{{ numero_paif_valor|default:'' }}{% endif %}">
+            </div>
+        </div>
+
+        <!-- Campo de ID oculto para uso em requisições AJAX -->
+        <input type="hidden" id="ficha_id" name="ficha_id" value="{% if ficha %}{{ ficha.id }}{% endif %}">
+
+        <label>Nome da Referência do Grupo Familiar:</label>
+        <input type="text" name="nome_referencia" value="{% if ficha %}{{ ficha.nome_referencia }}{% endif %}">
+
+        <div class="row">
+            <div>
+                <label>CPF:</label>
+                <input type="text" name="cpf" maxlength="14" oninput="formatarCPF(this)" value="{% if ficha %}{{ ficha.cpf }}{% endif %}">
+            </div>
+            <div>
+                <label>RG:</label>
+                <input type="text" name="rg" value="{% if ficha %}{{ ficha.rg }}{% endif %}">
+            </div>
+            <div>
+                <label>NIS:</label>
+                <input type="text" name="nis" value="{% if ficha %}{{ ficha.nis }}{% endif %}">
+            </div>
+        </div>
+
+        <label>Mãe:</label>
+        <input type="text" name="mae" value="{% if ficha %}{{ ficha.nome_mae }}{% endif %}">
+
+        <label>Autodeclaração:</label>
+        <div class="checkbox-group">
+            <label><input type="radio" name="raca" value="branca"> Branca</label>
+            <label><input type="radio" name="raca" value="parda"> Parda</label>
+            <label><input type="radio" name="raca" value="negra"> Negra</label>
+            <label><input type="radio" name="raca" value="quilombola"> Quilombola</label>
+            <label><input type="radio" name="raca" value="indigena"> Indígena</label>
+            <label><input type="radio" name="raca" value="outra"> Outra</label>
+        </div>
+
+        <label>Endereço:</label>
+        <input type="text" name="endereco" value="{% if ficha %}{{ ficha.endereco }}{% endif %}">
+
+        <div class="row">
+            <div>
+                <label>Número:</label>
+                <input type="text" name="numero" value="{% if ficha %}{{ ficha.numero }}{% endif %}">
+            </div>
+            <div>
+                <label>Bairro:</label>
+                <input type="text" name="bairro" value="{% if ficha %}{{ ficha.bairro }}{% endif %}">
+            </div>
+            <div>
+                <label>CEP:</label>
+                <input type="text" name="cep" maxlength="9" oninput="formatarCEP(this)" value="{% if ficha %}{{ ficha.cep }}{% endif %}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label>Município:</label>
+                <input type="text" name="municipio" value="{% if ficha %}{{ ficha.municipio }}{% endif %}">
+            </div>
+            <div>
+                <label>Telefone:</label>
+                <input type="text" name="telefone" maxlength="15" oninput="formatarTelefone(this)" value="{% if ficha %}{{ ficha.telefone }}{% endif %}">
+            </div>
+        </div>
+        <h3>🏠 Características do Domicílio</h3>
+        <fieldset>
+            <legend>Moradia:</legend>
+            <div class="two-columns">
+                <label><input type="radio" name="moradia" value="propria"> Própria</label>
+                <label><input type="radio" name="moradia" value="alugada"> Alugada</label>
+                <label><input type="radio" name="moradia" value="financiada"> Financiada</label>
+                <label><input type="radio" name="moradia" value="cedida"> Cedida</label>
+                <label><input type="radio" name="moradia" value="ocupacao"> Ocupação</label>
+                <label><input type="radio" name="moradia" value="outra" onclick="toggleOutraMoradia(this)"> Outra. Qual? <input type="text" name="moradia_outra" id="moradia_outra_input" style="display: none;"></label>
+            </div>
+        </fieldset>
+        <script>
+            function toggleOutraMoradia(radio) {
+                const input = document.getElementById('moradia_outra_input');
+                input.style.display = radio.checked ? 'inline-block' : 'none';
+            }
+        </script>
+
+        <fieldset>
+            <legend>Características do Domicílio:</legend>
+            <div class="two-columns">
+            <div>
+                <label>Nº de Cômodos:</label>
+                <input type="number" name="num_comodos">
+            </div>
+            <div>
+                <label>Nº de Quartos:</label>
+                <input type="number" name="num_quartos">
+            </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Tipo de Construção:</legend>
+            <div class="three-columns">
+            <label><input type="radio" name="tipo_construcao" value="tijolo"> Tijolo/Alvenaria</label>
+            <label><input type="radio" name="tipo_construcao" value="taipa_revestida"> Taipa Revestida (Pau ou Piquet)</label>
+            <label><input type="radio" name="tipo_construcao" value="taipa_nao_revestida"> Taipa Não Revestida</label>
+            <label><input type="radio" name="tipo_construcao" value="madeira"> Madeira</label>
+            <label><input type="radio" name="tipo_construcao" value="madeira_reaproveitada"> Madeira Reaproveitada (Mista)</label>
+            <label><input type="radio" name="tipo_construcao" value="outros"> Outros <input type="text" name="tipo_construcao_outros"></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Local de Risco:</legend>
+            <div class="two-columns">
+            <label><input type="radio" name="local_risco" value="sim"> Sim</label>
+            <label><input type="radio" name="local_risco" value="nao"> Não</label>
+            </div>
+            <p>Local de Risco: Encosta de morro; área alagada; beira de rio; riacho; proximidades com torre de alta tensão; lixão ou local insalubre.</p>
+        </fieldset>
+
+        <fieldset>
+            <legend>Energia Elétrica:</legend>
+            <div class="three-columns">
+            <label><input type="radio" name="energia_eletrica" value="relogio"> Relógio</label>
+            <label><input type="radio" name="energia_eletrica" value="improvisado"> Improvisado (Gatos)</label>
+            <label><input type="radio" name="energia_eletrica" value="outros"> Outros <input type="text" name="energia_eletrica_outros"></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Instalação Sanitária:</legend>
+            <div class="two-columns">
+            <label><input type="radio" name="instalacao_sanitaria" value="fossa_septica"> Fossa Séptica</label>
+            <label><input type="radio" name="instalacao_sanitaria" value="fossa_rudimentar"> Fossa Rudimentar</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Destino do Esgoto Domiciliar:</legend>
+            <div class="three-columns">
+            <label><input type="radio" name="destino_esgoto" value="ceu_aberto"> Céu Aberto</label>
+            <label><input type="radio" name="destino_esgoto" value="fossa"> Fossa</label>
+            <label><input type="radio" name="destino_esgoto" value="outro"> Outro</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Abastecimento de Água:</legend>
+            <div class="three-columns">
+            <label><input type="radio" name="abastecimento_agua" value="rede_publica"> Rede Pública Encanada</label>
+            <label><input type="radio" name="abastecimento_agua" value="carro_pipa"> Carro Pipa / Poço</label>
+            <label><input type="radio" name="abastecimento_agua" value="correntes_naturais"> Correntes de Água Natural</label>
+            <label><input type="radio" name="abastecimento_agua" value="torneira_coletiva"> Torneiras Coletivas</label>
+            <label><input type="radio" name="abastecimento_agua" value="outro"> Outro</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Destino do Lixo Domiciliar:</legend>
+            <div class="three-columns">
+            <label><input type="radio" name="destino_lixo" value="coleta_domiciliar"> Coleta Domiciliar</label>
+            <label><input type="radio" name="destino_lixo" value="queimado"> Queimado</label>
+            <label><input type="radio" name="destino_lixo" value="cacamba"> Caçamba</label>
+            <label><input type="radio" name="destino_lixo" value="enterrado"> Enterrado</label>
+            <label><input type="radio" name="destino_lixo" value="outro"> Outro</label>
+            </div>
+        </fieldset>
+
+        <h3>💰 Receita Mensal e Benefícios</h3>
+        <div class="row">
+            <div>
+                <label>Nº Integrantes da Familia:</label>
+                <input type="number" name="num_integrantes">
+            </div>
+            <div>
+                <label>Quantos Trabalham:</label>
+                <input type="number" name="num_trabalham">
+            </div>
+        </div>
+        <div class="row">
+            <div>
+                <label>Renda Total:</label>
+                <input type="text" name="renda_total" maxlength="14" oninput="formatarReal(this)">
+            </div>
+            <div>
+                <label>Benefícios (se houver):</label>
+                <input type="text" name="beneficios" maxlength="14" oninput="formatarReal(this)">
+            </div>
+        </div>
+            
+
+        <h3>💳 Despesas Mensais</h3>
+        <div class="row">
+            <div><label>Aluguel:</label><input type="text" name="despesa_aluguel" maxlength="14" oninput="formatarReal(this)">
+            </div>
+            <div><label>Alimentação:</label><input type="text" name="despesa_alimentacao" maxlength="14" oninput="formatarReal(this)">
+            </div>
+            <div><label>Água:</label><input type="text" name="despesa_agua" maxlength="14" oninput="formatarReal(this)">
+            </div>
+        </div>
+        <div class="row">
+            <div><label>Luz:</label><input type="text" name="despesa_luz" maxlength="14" oninput="formatarReal(this)">
+            </div>
+            <div><label>Transporte:</label><input type="text" name="despesa_transporte" maxlength="14" oninput="formatarReal(this)">
+            </div>
+            <div><label>Gás:</label><input type="text" name="despesa_gas" maxlength="14" oninput="formatarReal(this)">
+            </div>
+        </div>
+
+        <div class="">
+            <fieldset>
+                <legend>Demanda:</legend>
+                <div class="four-columns">
+                <label><input type="radio" name="demanda_espontane" value="espontanea"> Espontânea</label>
+                <label><input type="radio" name="demanda_encaminada" value="encaminha"> Encaminhada</label>
+                <label><input type="radio" name="demanda_buscativa" value="busca_ativa"> Busca Ativa</label>
+                <label><input type="radio" name="demanda_outros" value="outros"> Outros</label>
+                </div>
+            </fieldset>
+        </div>
+
+        <!-- Campo para assinatura -->
+        <fieldset>
+            <legend>Assinatura e Registro</legend>
+            <div class="assinatura-container">
+                <!-- Área para assinatura física (visível apenas no PDF) -->
+                <div class="assinatura-area" id="assinatura-fisica">
+                    <div class="linha-assinatura"></div>
+                    <p class="texto-assinatura">Assinatura do Responsável</p>
+                </div>
+                
+                <!-- Informações digitais (visíveis apenas na versão digital) -->
+                <div class="info-digital" id="info-registro">
+                    <h4>Histórico de Registros:</h4>
+                    <div class="registros-container">
+                        {% if registros_historico %}
+                            {% for registro in registros_historico %}
+                            <div class="registro-item">
+                                <p><strong>Registrado por:</strong> {{ registro.usuario }}</p>
+                                <p><strong>Data e hora:</strong> {{ registro.data_hora|date:"d/m/Y H:i:s" }}</p>
+                                <p><strong>CRAS:</strong> {{ registro.cras }}</p>
+                                <p><strong>Tipo:</strong> {{ registro.tipo }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        <!-- Registro atual -->
+                        <div class="registro-item registro-atual">
+                            <p><strong>Registrado por:</strong> {{ usuario_atual }}</p>
+                            <p><strong>Data e hora:</strong> {{ data_atual|date:"d/m/Y H:i:s" }}</p>
+                            <p><strong>CRAS:</strong> {{ cras_atual }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <style>
+            .assinatura-container {
+                margin-top: 20px;
+            }
+            
+            .assinatura-area {
+                height: 100px;
+                margin-bottom: 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+            }
+            
+            .linha-assinatura {
+                border-bottom: 1px solid #000;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .texto-assinatura {
+                text-align: center;
+                font-size: 0.9em;
+                margin: 5px 0;
+            }
+            
+            .info-digital {
+                border: 1px solid #ccc;
+                padding: 10px;
+                background-color: #f9f9f9;
+                border-radius: 5px;
+            }
+            
+            .registros-container {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            
+            .registro-item {
+                border-left: 3px solid #ccc;
+                margin-bottom: 10px;
+                padding: 5px 10px;
+                background-color: #f0f0f0;
+                border-radius: 0 5px 5px 0;
+            }
+            
+            .registro-item p {
+                margin: 5px 0;
+            }
+            
+            .registro-atual {
+                border-left-color: #28a745;
+                background-color: #e8f5e9;
+            }
+            
+            /* Controle de visibilidade para impressão */
+            @media print {
+                .info-digital {
+                    display: none;
+                }
+            }
+            
+            /* Controle de visibilidade para tela */
+            @media screen {
+                #assinatura-fisica {
+                    display: none;
+                }
+            }
+        </style>
+
+        <div class="two-columns">
+            <button type="button" onclick="exportarPDF()">Exportar PDF</button>
+            <button type="button" onclick="salvarDados()">Salvar</button>
+        </div>
+    </form>
+
+    <script>
+        function salvarDados() {
+            // Coletar todos os dados do formulário
+            const formData = new FormData(document.querySelector('form'));
+            
+            // Verificar campos obrigatórios
+            const camposObrigatorios = ['nome_referencia', 'data', 'cras'];
+            let camposFaltando = [];
+            
+            // Se não estiver em modo de edição, adicione paif aos campos obrigatórios
+            if (!document.getElementById('ficha_id').value) {
+                camposObrigatorios.push('paif');
+            }
+            
+            camposObrigatorios.forEach(campo => {
+                if (!formData.get(campo)) {
+                    camposFaltando.push(campo);
+                }
+            });
+            
+            if (camposFaltando.length > 0) {
+                alert(`Por favor, preencha os seguintes campos obrigatórios: ${camposFaltando.join(', ')}`);
+                return;
+            }
+            
+            // Adicionar ou atualizar a ficha PAIF
+            fetch(document.getElementById('ficha_id').value 
+                ? '{% url "paif:api_ficha_atualizar" %}'
+                : '{% url "paif:api_ficha_adicionar" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Dados salvos com sucesso!");
+                    if (data.ficha_id && !document.getElementById('ficha_id').value) {
+                        document.getElementById('ficha_id').value = data.ficha_id;
+                    }
+                } else {
+                    alert("Erro ao salvar dados: " + (data.message || "Erro desconhecido"));
+                }
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+                alert("Erro ao processar requisição: " + error);
+            });
+        }
+
+        function exportarPDF() {
+            alert("Função de exportar para PDF ainda não implementada.");
+        }
+
+        function formatarCPF(campo) {
+            campo.value = campo.value.replace(/\D/g, "")
+                                     .replace(/(\d{3})(\d)/, "$1.$2")
+                                     .replace(/(\d{3})(\d)/, "$1.$2")
+                                     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        }
+
+        function formatarCEP(campo) {
+            campo.value = campo.value.replace(/\D/g, "")
+                                     .replace(/(\d{5})(\d)/, "$1-$2");
+        }
+
+        function formatarTelefone(campo) {
+            campo.value = campo.value.replace(/\D/g, "")
+                                     .replace(/(\d{2})(\d)/, "($1) $2")
+                                     .replace(/(\d{5})(\d)/, "$1-$2");
+        }
+        
+        function formatarReal(campo) {
+             let valor = campo.value.replace(/\D/g, ""); // Remove tudo que não for número
+             valor = (valor / 100).toFixed(2); // Divide por 100 para transformar em decimal
+             valor = valor.replace(".", ","); // Troca ponto por vírgula
+             campo.value = "R$ " + valor; // Adiciona o símbolo de R$
+        }
+
+        // Função para gerar e verificar número PAIF único - aceita o elemento como parâmetro
+        function gerarNumeroPAIF(campoNumeroPaif) {
+            console.log("Iniciando geração de número PAIF...");
+            
+            if (!campoNumeroPaif || !document.body.contains(campoNumeroPaif)) {
+                console.error("Campo PAIF não encontrado ou não está mais no DOM. Abortando geração de número.");
+                return;
+            }
+            
+            // Procedimento de geração e verificação do número
+            function verificarEGerarNumero() {
+                const numeroPAIF = Math.floor(10000 + Math.random() * 90000);
+                console.log(`Tentando número PAIF: ${numeroPAIF}`);
+
+                fetch(`/paif/api/verifica_numero_paif/?numero_paif=${numeroPAIF}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Resposta do servidor:", data);
+                        if (!data.disponivel) {
+                            console.log("Número PAIF já existe, tentando novamente...");
+                            setTimeout(verificarEGerarNumero, 100);
+                        } else {
+                            // Usar o número retornado pela API para garantir consistência
+                            const numeroParaUsar = data.numero || numeroPAIF;
+                            
+                            // Verificar se o elemento ainda está no DOM
+                            if (document.body.contains(campoNumeroPaif)) {
+                                campoNumeroPaif.value = numeroParaUsar;
+                                console.log("Número PAIF preenchido com sucesso:", numeroParaUsar);
+                            } else {
+                                console.error("Erro: Campo PAIF não está mais presente no DOM");
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro na requisição fetch para verificar número PAIF:", error);
+                    });
+            }
+            
+            verificarEGerarNumero();
+        }
+
+        // Garante que o campo PAIF só será preenchido após o DOM estar pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded disparado. Verificando o modo...");
+            const urlParams = new URLSearchParams(window.location.search);
+            const modo = urlParams.get('modo');
+            console.log(`Modo detectado: ${modo}`);
+
+            // Preencher CRAS automaticamente se não houver ficha/cras já selecionado
+            const crasSelect = document.getElementById('cras_select');
+            if (crasSelect && !crasSelect.value && "{{ cras_atual_id }}") {
+                crasSelect.value = "{{ cras_atual_id }}";
+                console.log("CRAS preenchido automaticamente.");
+            } else {
+                console.log("CRAS não preenchido automaticamente (já selecionado ou sem cras_atual_id).");
+            }
+
+            if (modo === 'editar') {
+                console.log("Modo de edição detectado. Não será gerado um novo número PAIF.");
+            } else {
+                console.log("Modo de novo cadastro detectado. Verificando campo PAIF antes de gerar número...");
+                
+                // Obter a referência do elemento uma vez
+                const campoNumeroPaif = document.getElementById('numero_paif_input');
+                
+                if (campoNumeroPaif) {
+                    console.log("Campo PAIF encontrado no DOM. Iniciando geração de número...");
+                    // Chamar diretamente com a referência do campo
+                    gerarNumeroPAIF(campoNumeroPaif);
+                } else {
+                    console.error("ALERTA: Campo PAIF não encontrado no DOM durante o DOMContentLoaded!");
+                }
+            }
+        });
+    </script>

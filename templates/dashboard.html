@@ -1,0 +1,820 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Painel Inicial - CRAS360{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+<style>
+    /* Estilos gerais */
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border: none;
+        transition: transform 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        font-weight: 600;
+    }
+    .btn-cras {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    .btn-cras:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        color: white;
+    }
+    .bg-cras {
+        background-color: #28a745 !important;
+        color: white;
+    }
+    .icon-card {
+        font-size: 48px;
+        color: #28a745;
+    }
+    .stat-card {
+        text-align: center;
+        padding: 15px;
+    }
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #6c757d;
+    }
+    .action-card {
+        cursor: pointer;
+        text-align: center;
+        padding: 20px;
+    }
+    .chart-container {
+        position: relative;
+        height: 250px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-tachometer-alt text-success"></i> 
+            Painel de Controle - Bem-vindo(a), {{ user.nome_completo }}
+        </h1>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> Voltar ao Início
+        </a>
+    </div>
+    
+    <div class="row">
+        <!-- Conteúdo baseado no perfil do usuário -->
+        {% if user.perfil == 'Recepção' %}
+            <!-- PAINEL PARA RECEPÇÃO -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-calendar-check"></i> Próximos Agendamentos ({{ agendamentos_pendentes }} pendentes)
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Nome</th>
+                                        <th>Motivo</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for agendamento in agendamentos %}
+                                    <tr>
+                                        <td>{{ agendamento.data }}</td>
+                                        <td>{{ agendamento.hora }}</td>
+                                        <td>{{ agendamento.nome }}</td>
+                                        <td>{{ agendamento.motivo }}</td>
+                                        <td>
+                                            {% if agendamento.status == 'Confirmado' %}
+                                                <span class="badge badge-success">Confirmado</span>
+                                            {% elif agendamento.status == 'Pendente' %}
+                                                <span class="badge badge-warning">Pendente</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ agendamento.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check"></i> Confirmar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'recepcao_agendamento' %}" class="btn btn-sm btn-cras">
+                            <i class="fas fa-plus"></i> Novo Agendamento
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-list"></i> Ver Todos
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-tasks"></i> Ações Rápidas
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'recepcao_novo_agendamento' %}" class="btn btn-cras btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
+                            Novo Agendamento
+                        </a>
+                        <a href="{% url 'recepcao_agendamento' %}" class="btn btn-outline-primary btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                            Gerenciamento de Agendamentos
+                        </a>
+                        <a href="{% url 'recepcao_busca' %}" class="btn btn-outline-info btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-search fa-2x mb-2"></i><br>
+                            Buscar Beneficiário
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-info-circle"></i> Informações do Dia
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Data:</strong> {{ data_atual }}</p>
+                        <p><strong>Técnicos disponíveis hoje:</strong> 5</p>
+                        <p><strong>Agendamentos para hoje:</strong> {{ total_agendamentos }}</p>
+                        <p><strong>Atendimentos realizados:</strong> 3</p>
+                        <hr>
+                        <div class="alert alert-info">
+                            <i class="fas fa-exclamation-circle"></i> Reunião de equipe às 17h.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        {% elif user.perfil == 'Assistente Social' %}
+            <!-- PAINEL PARA ASSISTENTE SOCIAL -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-clipboard-check"></i> Meus Atendimentos PAIF
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Beneficiário</th>
+                                        <th>Tipo</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for atendimento in atendimentos %}
+                                    <tr>
+                                        <td>{{ atendimento.data }}</td>
+                                        <td>{{ atendimento.nome }}</td>
+                                        <td>{{ atendimento.tipo }}</td>
+                                        <td>
+                                            {% if atendimento.status == 'Concluído' %}
+                                                <span class="badge badge-success">Concluído</span>
+                                            {% elif atendimento.status == 'Agendado' %}
+                                                <span class="badge badge-warning">Agendado</span>
+                                            {% elif atendimento.status == 'Pendente' %}
+                                                <span class="badge badge-info">Pendente</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">{{ atendimento.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Ver
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-edit"></i> Evolução
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-calendar-day"></i> Agenda do Dia
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <small class="text-muted">09:00</small>
+                                        <p class="mb-0">Atendimento PAIF - Maria Silva</p>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <small class="text-muted">10:30</small>
+                                        <p class="mb-0">Visita Domiciliar - Família Santos</p>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <small class="text-muted">14:00</small>
+                                        <p class="mb-0">Grupo Reflexivo - Sala 3</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-exclamation-triangle"></i> Pendências
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <small class="text-muted">Relatório Mensal</small>
+                                        <p class="mb-0">Prazo: 20/06/2023</p>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <small class="text-muted">Evolução PAIF - João Santos</small>
+                                        <p class="mb-0">Último atendimento: 10/06/2023</p>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <small class="text-muted">Diagnóstico Familiar - Ana Oliveira</small>
+                                        <p class="mb-0">Pendente desde: 05/06/2023</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-tasks"></i> Ações Rápidas
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'paif:paif_cadastro_novo' %}" class="btn btn-cras btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                            Novo Registro PAIF
+                        </a>
+                        <a href="{% url 'paif:paif_listar' %}" class="btn btn-outline-success btn-lg btn-block py-3">
+                            <i class="fas fa-search fa-2x mb-2"></i><br>
+                            Pesquisar Registros PAIF
+                        </a>
+                        <a href="/relatorios/paif/" class="btn btn-outline-info btn-lg btn-block py-3 mt-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                            Relatórios PAIF
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-home"></i> Módulo PAIF
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{% url 'paif:paif_fichainscricao' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-alt text-success"></i> Ficha de Inscrição
+                            </a>
+                            <a href="{% url 'paif:paif_evolucao' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-chart-line text-success"></i> Evolução de Atendimento
+                            </a>
+                            <a href="{% url 'paif:paif_listar' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-list-alt text-success"></i> Listagem de Registros
+                            </a>
+                            <a href="{% url 'paif:index' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-users text-success"></i> Acompanhamento Familiar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="card-header bg-cras">
+                            <i class="fas fa-search"></i> Busca Rápida
+                        </div>
+                        <div class="card-body">
+                            <form action="#" method="GET">
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" placeholder="Buscar PAIF...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-cras" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        {% elif user.perfil in 'Técnico PAIF,Técnico SCFV,Técnico' %}
+            <!-- PAINEL PARA TÉCNICOS SCFV E PEDAGOGO -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-users"></i> Grupos SCFV Ativos
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Grupo</th>
+                                        <th>Horário</th>
+                                        <th>Dia</th>
+                                        <th>Participantes</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grupo in grupos %}
+                                    <tr>
+                                        <td>{{ grupo.nome }}</td>
+                                        <td>{{ grupo.horario }}</td>
+                                        <td>{{ grupo.dia }}</td>
+                                        <td>{{ grupo.participantes }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Detalhes
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-user-plus"></i> Participantes
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-calendar-alt"></i> Próximas Atividades
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    {% for atividade in proximas_atividades %}
+                                    <li class="list-group-item">
+                                        <span class="badge badge-success">{{ atividade.data }} - {{ atividade.hora }}</span>
+                                        <p class="mb-0"><strong>{{ atividade.grupo }}:</strong> {{ atividade.atividade }}</p>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-clipboard-check"></i> Frequências Pendentes
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <span class="badge badge-warning">10/06/2023</span>
+                                        <p class="mb-0">Crianças 6-9 anos</p>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span class="badge badge-warning">11/06/2023</span>
+                                        <p class="mb-0">Adolescentes 14-17 anos</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-tasks"></i> Ações Rápidas
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'scfv:jovem_novo' %}" class="btn btn-cras btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-child fa-2x mb-2"></i><br>
+                            Novo Cadastro Infantojuvenil
+                        </a>
+                        <a href="{% url 'scfv:idoso_novo' %}" class="btn btn-outline-success btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-user-friends fa-2x mb-2"></i><br>
+                            Novo Cadastro Idoso
+                        </a>
+                        <a href="/relatorios/scfv/" class="btn btn-outline-info btn-lg btn-block py-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                            Relatórios SCFV
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-users"></i> Módulo SCFV
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{% url 'scfv:index' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-home text-success"></i> Página Inicial SCFV
+                            </a>
+                            <a href="{% url 'scfv:jovem_novo' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-child text-success"></i> SCFV Infantil
+                            </a>
+                            <a href="{% url 'scfv:jovem_novo' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-user-graduate text-success"></i> SCFV Adolescentes
+                            </a>
+                            <a href="{% url 'scfv:idoso_novo' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-user-friends text-success"></i> SCFV Idosos
+                            </a>
+                            <a href="{% url 'scfv:consulta' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-calendar-check text-success"></i> Frequências
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-search"></i> Buscar Participantes
+                    </div>
+                    <div class="card-body">
+                        <form action="#" method="GET">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" placeholder="Nome ou documento...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-cras" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+        {% elif user.perfil == 'Coordenador' or user.perfil == 'Administrador' %}
+            <!-- PAINEL PARA COORDENADOR OU ADMINISTRADOR -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-cras">
+                                    <i class="fas fa-chart-pie"></i> Distribuição por Público
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartPorPublico"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-cras">
+                                    <i class="fas fa-chart-bar"></i> Atendimentos por Tipo
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chartPorTipo"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-cras">
+                            <i class="fas fa-calendar-alt"></i> Atividades Programadas
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Atividade</th>
+                                            <th>Responsável</th>
+                                            <th>Público</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>17/04/2023</td>
+                                            <td>Oficina de Artesanato</td>
+                                            <td>Paula Oliveira</td>
+                                            <td>Idosos</td>
+                                            <td><span class="badge badge-success">Confirmada</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>18/04/2023</td>
+                                            <td>Reunião com Famílias</td>
+                                            <td>Carlos Santos</td>
+                                            <td>Responsáveis SCFV</td>
+                                            <td><span class="badge badge-warning">Pendente</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna lateral para o Coordenador -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-cras">
+                            <i class="fas fa-tasks"></i> Ações Rápidas
+                        </div>
+                        <div class="card-body">
+                            <a href="#" class="btn btn-cras btn-lg btn-block py-3 mb-3">
+                                <i class="fas fa-users fa-2x mb-2"></i><br>
+                                Equipe CRAS
+                            </a>
+                            <a href="#" class="btn btn-outline-success btn-lg btn-block py-3 mb-3">
+                                <i class="fas fa-calendar-check fa-2x mb-2"></i><br>
+                                Agenda da Unidade
+                            </a>
+                            <a href="#" class="btn btn-outline-info btn-lg btn-block py-3">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                                Relatório da Unidade
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-cras">
+                            <i class="fas fa-exclamation-triangle"></i> Pendências da Unidade
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <small class="text-muted">Relatório Mensal</small>
+                                    <p class="mb-0">Prazo: 30/04/2025</p>
+                                </li>
+                                <li class="list-group-item">
+                                    <small class="text-muted">Reunião de Equipe</small>
+                                    <p class="mb-0">Data: 05/05/2025</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% elif user.perfil == 'Auxiliar Administrativo' %}
+            <!-- PAINEL PARA AUXILIAR ADMINISTRATIVO -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-file-alt"></i> Documentos Recentes
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Número</th>
+                                        <th>Data</th>
+                                        <th>Destinatário</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for documento in documentos %}
+                                    <tr>
+                                        <td>{{ documento.tipo }}</td>
+                                        <td>{{ documento.numero }}</td>
+                                        <td>{{ documento.data }}</td>
+                                        <td>{{ documento.destinatario }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Ver
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-print"></i> Imprimir
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-clipboard-list"></i> Listas de Frequência
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    {% for lista in listas_frequencia %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <strong>{{ lista.nome }}</strong><br>
+                                            <small class="text-muted">{{ lista.data }}</small>
+                                        </span>
+                                        <span class="badge {% if lista.status == 'Impresso' %}badge-success{% elif lista.status == 'Pendente' %}badge-warning{% else %}badge-info{% endif %} badge-pill">
+                                            {{ lista.status }}
+                                        </span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="card-footer">
+                                <a href="#" class="btn btn-sm btn-cras">
+                                    <i class="fas fa-plus"></i> Nova Lista
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-cras">
+                                <i class="fas fa-warehouse"></i> Estoque
+                            </div>
+                            <div class="card-body">
+                                <p>
+                                    <strong>Itens com estoque baixo:</strong> 
+                                    <span class="badge badge-danger">{{ estoque_itens_baixos }}</span>
+                                </p>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> Materiais de escritório com estoque crítico.
+                                </div>
+                                <a href="#" class="btn btn-sm btn-cras">
+                                    <i class="fas fa-boxes"></i> Gerenciar Estoque
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-tasks"></i> Ações Rápidas
+                    </div>
+                    <div class="card-body">
+                        <a href="#" class="btn btn-cras btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-file-word fa-2x mb-2"></i><br>
+                            Novo Documento
+                        </a>
+                        <a href="#" class="btn btn-outline-success btn-lg btn-block py-3 mb-3">
+                            <i class="fas fa-print fa-2x mb-2"></i><br>
+                            Imprimir Listagens
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-info btn-lg btn-block py-3 dropdown-toggle" type="button" id="relatoriosDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                                Relatórios
+                            </button>
+                            <div class="dropdown-menu w-100" aria-labelledby="relatoriosDropdown">
+                                <a class="dropdown-item text-center" href="/relatorios/scfv/">
+                                    <i class="fas fa-child text-info"></i> Relatórios SCFV
+                                </a>
+                                <a class="dropdown-item text-center" href="/relatorios/paif/">
+                                    <i class="fas fa-folder text-info"></i> Relatórios PAIF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-file-word"></i> Modelos de Documentos
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-alt text-success"></i> Modelo de Ofício
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-alt text-success"></i> Modelo de Declaração
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-alt text-success"></i> Modelo de Memorando
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-alt text-success"></i> Modelo de Relatório
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-clipboard-check"></i> Pendências
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <small class="text-muted">Ofício para Secretaria</small>
+                                <p class="mb-0">Prazo: 20/06/2023</p>
+                            </li>
+                            <li class="list-group-item">
+                                <small class="text-muted">Lista de Frequência SCFV</small>
+                                <p class="mb-0">Pendente desde: 10/06/2023</p>
+                            </li>
+                            <li class="list-group-item">
+                                <small class="text-muted">Inventário de Estoque</small>
+                                <p class="mb-0">Realizar até: 30/06/2023</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+        {% else %}
+            <!-- PAINEL DEFAULT -->
+            <div class="col-md-12">
+                <div class="card text-center">
+                    <div class="card-header bg-cras">
+                        <i class="fas fa-info-circle"></i> Informação
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Bem-vindo ao CRAS360</h5>
+                        <p class="card-text">O painel específico para seu perfil está em construção. Entre em contato com a administração do sistema para mais informações.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if user.is_superuser or 'gestores' in user.groups.all|stringformat:"s" %}
+<div class="row mt-8">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Gestão Municipal</h5>
+            </div>
+            <div class="card-body">
+                <p>Acesse o painel de gestão municipal para ver estatísticas e monitorar as unidades do CRAS.</p>
+                <a href="{% url 'gestao:gestao_municipal' %}" class="btn btn-primary">
+                    <i class="fas fa-analytics"></i> Acessar Gestão Municipal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+<!-- Passar dados do Django para o JavaScript usando json_script -->
+{% if user.perfil == 'Coordenador' %}
+{{ estatisticas.distribuicao_publico|json_script:"chartDataPublico" }}
+{{ estatisticas.atendimentos_por_tipo|json_script:"chartDataAtendimentos" }}
+{% endif %}
+{% endblock %}
+
+{% endblock %}
+

@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agendamentos - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-calendar-alt text-success"></i> Gerenciamento de Agendamentos
+        </h1>
+        <button class="btn btn-outline-secondary" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar"></i> Agenda do Mês</h5>
+                    <a href="{% url 'recepcao_novo_agendamento' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus"></i> Novo Agendamento
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div id="calendario" class="mb-4"></div>
+                    
+                    <h5 class="mt-4">Agendamentos do Dia Selecionado</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="tabela-agendamentos-dia">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Beneficiário</th>
+                                    <th>Técnico</th>
+                                    <th>Motivo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-muted">
+                                    <td colspan="6" class="text-center">Selecione uma data no calendário</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'recepcao_novo_agendamento' %}" class="btn btn-success btn-lg btn-block mb-3">
+                        <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
+                        Novo Agendamento
+                    </a>
+                    <a href="#" class="btn btn-outline-success btn-lg btn-block">
+                        <i class="fas fa-calendar-day fa-2x mb-2"></i><br>
+                        Ver Hoje
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-check"></i> Técnicos Disponíveis</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for tecnico in tecnicos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ tecnico.nome }}
+                            {% if tecnico.disponivel %}
+                                <span class="badge badge-success badge-pill">Disponível</span>
+                            {% else %}
+                                <span class="badge badge-danger badge-pill">Ocupado</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Horários Disponíveis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <small>Selecione um técnico e uma data para ver os horários disponíveis.</small>
+                    </div>
+                    
+                    <form id="form-verificar-horarios" class="mb-3">
+                        <div class="form-group">
+                            <label for="tecnico_id">Técnico:</label>
+                            <select class="form-control" id="tecnico_id">
+                                <option value="">Selecione um técnico</option>
+                                {% for tecnico in tecnicos %}
+                                    <option value="{{ forloop.counter }}">{{ tecnico.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="data">Data:</label>
+                            <input type="date" class="form-control" id="data" min="{{ data_atual }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verificar Horários</button>
+                    </form>
+                    
+                    <div id="horarios-disponiveis">
+                        <ul class="list-group">
+                            {% for horario in horarios_disponiveis %}
+                            <li class="list-group-item">{{ horario }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Implementação básica de calendário - em produção usaria biblioteca como FullCalendar
+        const hoje = new Date();
+        let mesSelecionado = hoje.getMonth();
+        let anoSelecionado = hoje.getFullYear();
+        
+        renderizarCalendario(mesSelecionado, anoSelecionado);
+        
+        // Manipulador para verificar horários disponíveis
+        document.getElementById('form-verificar-horarios').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const tecnicoId = document.getElementById('tecnico_id').value;
+            const data = document.getElementById('data').value;
+            
+            if (!tecnicoId || !data) {
+                alert('Por favor, selecione um técnico e uma data.');
+                return;
+            }
+            
+            // Aqui faria uma requisição AJAX para obter horários disponíveis
+            // Por enquanto apenas exibimos os dados simulados
+            renderizarHorariosDisponiveis();
+        });
+        
+        function renderizarCalendario(mes, ano) {
+            const calendario = document.getElementById('calendario');
+            calendario.innerHTML = '';
+            
+            const header = document.createElement('div');
+            header.className = 'calendario-header d-flex justify-content-between align-items-center mb-2';
+            header.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary" id="mes-anterior">&laquo;</button>
+                <h5 class="mb-0">${obterNomeMes(mes)} ${ano}</h5>
+                <button class="btn btn-sm btn-outline-secondary" id="proximo-mes">&raquo;</button>
+            `;
+            calendario.appendChild(header);
+            
+            // Botões de navegação do calendário
+            document.getElementById('mes-anterior').addEventListener('click', function() {
+                if (mes === 0) {
+                    mes = 11;
+                    ano--;
+                } else {
+                    mes--;
+                }
+                renderizarCalendario(mes, ano);
+            });
+            
+            document.getElementById('proximo-mes').addEventListener('click', function() {
+                if (mes === 11) {
+                    mes = 0;
+                    ano++;
+                } else {
+                    mes++;
+                }
+                renderizarCalendario(mes, ano);
+            });
+            
+            // Criar tabela do calendário
+            const table = document.createElement('table');
+            table.className = 'table table-bordered table-sm text-center';
+            
+            // Cabeçalho dos dias da semana
+            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const thead = document.createElement('thead');
+            let row = document.createElement('tr');
+            
+            diasSemana.forEach(dia => {
+                const th = document.createElement('th');
+                th.textContent = dia;
+                row.appendChild(th);
+            });
+            
+            thead.appendChild(row);
+            table.appendChild(thead);
+            
+            // Corpo do calendário
+            const tbody = document.createElement('tbody');
+            
+            // Primeiro dia do mês
+            const primeiroDia = new Date(ano, mes, 1);
+            const ultimoDia = new Date(ano, mes + 1, 0);
+            
+            let dia = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    cell.style.height = '40px';
+                    cell.style.width = '40px';
+                    
+                    if ((i === 0 && j < primeiroDia.getDay()) || dia > ultimoDia.getDate()) {
+                        cell.className = 'bg-light';
+                    } else {
+                        cell.textContent = dia;
+                        
+                        // Destacar o dia atual
+                        if (dia === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) {
+                            cell.className = 'bg-primary text-white';
+                        }
+                        
+                        // Destacar dias com agendamentos (simulado)
+                        if ((dia % 3 === 0 || dia % 5 === 0) && dia <= ultimoDia.getDate()) {
+                            const badge = document.createElement('div');
+                            badge.className = 'badge badge-success badge-pill';
+                            badge.textContent = '•';
+                            badge.style.position = 'absolute';
+                            badge.style.bottom = '2px';
+                            badge.style.right = '2px';
+                            
+                            cell.style.position = 'relative';
+                            cell.appendChild(badge);
+                            cell.style.cursor = 'pointer';
+                            
+                            // Ao clicar em um dia com agendamentos, mostrar os detalhes
+                            cell.addEventListener('click', function() {
+                                const dataClicada = new Date(ano, mes, dia);
+                                mostrarAgendamentosDoDia(dataClicada);
+                            });
+                        }
+                        
+                        dia++;
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+                
+                if (dia > ultimoDia.getDate()) break;
+            }
+            
+            table.appendChild(tbody);
+            calendario.appendChild(table);
+        }
+        
+        function obterNomeMes(mes) {
+            const meses = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+            return meses[mes];
+        }
+        
+        function mostrarAgendamentosDoDia(data) {
+            // Aqui faria uma requisição AJAX para obter os agendamentos do dia
+            // Por enquanto apenas simulamos os dados
+            const diaFormatado = data.toLocaleDateString('pt-BR');
+            const tbody = document.querySelector('#tabela-agendamentos-dia tbody');
+            
+            // Limpar tabela
+            tbody.innerHTML = '';
+            
+            // Simulação de dados
+            const agendamentos = [
+                { hora: '08:00', beneficiario: 'Maria Silva', tecnico: 'Carlos Técnico', motivo: 'PAIF', status: 'Confirmado' },
+                { hora: '09:30', beneficiario: 'João Oliveira', tecnico: 'Ana Técnico', motivo: 'SCFV', status: 'Pendente' }
+            ];
+            
+            // Se não houver agendamentos
+            if (agendamentos.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="6" class="text-center">Nenhum agendamento para ${diaFormatado}</td>`;
+                tbody.appendChild(row);
+                return;
+            }
+            
+            // Preencher tabela com agendamentos
+            agendamentos.forEach(ag => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ag.hora}</td>
+                    <td>${ag.beneficiario}</td>
+                    <td>${ag.tecnico}</td>
+                    <td>${ag.motivo}</td>
+                    <td>
+                        <span class="badge badge-${ag.status === 'Confirmado' ? 'success' : 'warning'}">${ag.status}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function renderizarHorariosDisponiveis() {
+            // Simulação de horários disponíveis
+            const horarios = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+            const container = document.getElementById('horarios-disponiveis');
+            
+            container.innerHTML = '';
+            const ul = document.createElement('ul');
+            ul.className = 'list-group';
+            
+            horarios.forEach(horario => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>${horario}</span>
+                        <a href="{% url 'recepcao_novo_agendamento' %}?horario=${horario}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-plus"></i> Agendar
+                        </a>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+            
+            container.appendChild(ul);
+        }
+    });
+</script>
+{% endblock %}

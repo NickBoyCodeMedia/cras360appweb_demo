@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Demanda Espontânea - CRAS360{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-clipboard-list text-primary"></i> Demanda Espontânea
+        </h1>
+        <a href="{% url 'recepcao_index' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-user-clock"></i> Agendar Atendimento - Demanda Espontânea</h5>
+        </div>
+        <div class="card-body">
+            <form id="form-demanda-espontanea" method="post" action="{% url 'recepcao_registrar_demanda_espontanea' %}">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="nome_completo">Nome Completo:</label>
+                            <input type="text" class="form-control" id="nome_completo" name="nome_completo" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="documento">CPF:</label>
+                            <input type="text" class="form-control cpf-mask" id="documento" name="documento" placeholder="000.000.000-00">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="nis">NIS (opcional):</label>
+                            <input type="text" class="form-control" id="nis" name="nis" placeholder="00000000000">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="demanda">Descreva brevemente a demanda:</label>
+                            <textarea class="form-control" id="demanda" name="demanda" rows="3" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="tipo_atendimento">Tipo de Atendimento:</label>
+                            <select name="tipo_atendimento" id="tipo_atendimento" class="form-control" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="PAIF">PAIF</option>
+                                <option value="SCFV">SCFV</option>
+                                <option value="Cadastro Único">Cadastro Único</option>
+                                <option value="Benefício Eventual">Benefício Eventual</option>
+                                <option value="Psicológico">Atendimento Psicológico</option>
+                                <option value="Orientação">Orientação Social</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="tecnico">Técnico Responsável:</label>
+                            <select name="tecnico" id="tecnico" class="form-control" required>
+                                <option value="">Selecione um técnico</option>
+                                <option value="1">Carlos Silva - Assistente Social</option>
+                                <option value="2">Ana Souza - Psicóloga</option>
+                                <option value="3">Pedro Santos - Técnico PAIF</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="prioridade">Prioridade:</label>
+                            <select name="prioridade" id="prioridade" class="form-control" required>
+                                <option value="Normal">Normal</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Urgente">Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Registrar Demanda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mascara para CPF
+    document.querySelectorAll('.cpf-mask').forEach(function(input) {
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            }
+        });
+    });
+    
+    // Filtrar técnicos de acordo com o tipo de atendimento
+    document.getElementById('tipo_atendimento').addEventListener('change', function() {
+        const tipoAtendimento = this.value;
+        const tecnicoSelect = document.getElementById('tecnico');
+        const opcoes = tecnicoSelect.querySelectorAll('option');
+        
+        // Reset
+        opcoes.forEach(option => {
+            if (option.value === '') return; // Pular opção "Selecione"
+            option.style.display = '';
+        });
+        
+        // Filtrar por perfil conforme necessário
+        // Exemplo: se for atendimento psicológico, mostrar apenas psicólogos
+        if (tipoAtendimento === 'Psicológico') {
+            opcoes.forEach(option => {
+                if (option.value === '') return;
+                if (!option.textContent.includes('Psicóloga') && !option.textContent.includes('Psicólogo')) {
+                    option.style.display = 'none';
+                }
+            });
+        }
+        
+        // Limpar seleção se o técnico anterior não for compatível
+        if (tecnicoSelect.selectedIndex > 0) {
+            const selectedOption = tecnicoSelect.options[tecnicoSelect.selectedIndex];
+            if (selectedOption.style.display === 'none') {
+                tecnicoSelect.selectedIndex = 0;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

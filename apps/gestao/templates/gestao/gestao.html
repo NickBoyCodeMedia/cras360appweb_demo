@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CRAS360 - Gestão Municipal{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #mapa-cras { height: 400px; width: 100%; }
+    #grafico-atendimentos { height: 400px; width: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Cabeçalho com informações da cidade -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0">Gestão Municipal de CRAS</h2>
+                        <p class="text-muted mb-0">{{ cidade.nome }} - {{ cidade.uf }}</p>
+                    </div>
+                    <div class="d-flex">
+                        <button class="btn btn-primary me-2"><i class="fas fa-file-pdf"></i> Gerar Relatório</button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="periodoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Período: Último mês
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="periodoDropdown">
+                                <li><a class="dropdown-item" href="#">Última semana</a></li>
+                                <li><a class="dropdown-item" href="#">Último mês</a></li>
+                                <li><a class="dropdown-item" href="#">Último trimestre</a></li>
+                                <li><a class="dropdown-item" href="#">Último ano</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards com estatísticas gerais -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Famílias Atendidas</h5>
+                    <h2 class="display-4">{{ total_familias }}</h2>
+                    <p class="card-text"><small><i class="fas fa-arrow-up"></i> 5% em relação ao mês anterior</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Visitas Domiciliares</h5>
+                    <h2 class="display-4">{{ total_visitas }}</h2>
+                    <p class="card-text"><small><i class="fas fa-arrow-up"></i> 8% em relação ao mês anterior</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Inclusões no CadÚnico</h5>
+                    <h2 class="display-4">{{ total_inclusoes }}</h2>
+                    <p class="card-text"><small><i class="fas fa-arrow-down"></i> 2% em relação ao mês anterior</small></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Oficinas Realizadas</h5>
+                    <h2 class="display-4">{{ total_oficinas }}</h2>
+                    <p class="card-text"><small><i class="fas fa-equals"></i> Igual ao mês anterior</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapa e gráfico de atendimentos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Distribuição Geográfica dos CRAS</h5>
+                </div>
+                <div class="card-body">
+                    <div id="mapa-cras"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Comparativo de Atendimentos por CRAS</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="grafico-atendimentos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de CRAS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Unidades CRAS - {{ cidade.nome }}</h5>
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control" placeholder="Buscar CRAS...">
+                        <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Endereço</th>
+                                    <th>Coordenador(a)</th>
+                                    <th>Famílias Cadastradas</th>
+                                    <th>Atendimentos (mês)</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cras in lista_cras %}
+                                <tr>
+                                    <td>{{ cras.nome }}</td>
+                                    <td>{{ cras.endereco }}</td>
+                                    <td>{{ cras.coordenador }}</td>
+                                    <td>{{ cras.familias_cadastradas }}</td>
+                                    <td>{{ cras.atendimentos_mes }}</td>
+                                    <td>
+                                        {% if cras.status == 'normal' %}
+                                        <span class="badge bg-success">Normal</span>
+                                        {% elif cras.status == 'atencao' %}
+                                        <span class="badge bg-warning">Atenção</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Crítico</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'gestao:detalhe_cras' cras.id %}" class="btn btn-sm btn-info">Detalhes</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">Nenhum CRAS cadastrado</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas e Notificações -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Alertas</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for alerta in alertas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                {{ alerta.mensagem }}
+                                <small class="d-block text-muted">{{ alerta.cras }} - {{ alerta.data }}</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary">Ver</button>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">Nenhum alerta no momento</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Próximos Eventos</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for evento in eventos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ evento.titulo }}</strong>
+                                <small class="d-block text-muted">{{ evento.data }} - {{ evento.cras }}</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary">Detalhes</button>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">Nenhum evento programado</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error('ERRO GLOBAL CAPTURADO:', message, 'em', source, 'linha', lineno, 'coluna', colno, error);
+        return false;
+    };
+    console.log('Script JS da gestão carregado!');
+
+    // Verificar se o DOM está pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM carregado via DOMContentLoaded');
+        console.log('Estado dos elementos neste ponto:');
+        console.log('- Elemento mapa-cras existe:', !!document.getElementById('mapa-cras'));
+        console.log('- Elemento grafico-atendimentos existe:', !!document.getElementById('grafico-atendimentos'));
+    });
+
+    // Adicionar um pequeno atraso para garantir que o DOM esteja completamente carregado
+    window.addEventListener('load', function() {
+        console.log('Evento LOAD disparado - página totalmente carregada');
+        console.log('Estado dos elementos após load:');
+        console.log('- Elemento mapa-cras existe:', !!document.getElementById('mapa-cras'));
+        console.log('- Elemento grafico-atendimentos existe:', !!document.getElementById('grafico-atendimentos'));
+        console.log('Estado dos elementos após load:');
+        if (document.getElementById('mapa-cras')) {
+            const mapSize = document.getElementById('mapa-cras').getBoundingClientRect();
+            console.log('Dimensões do mapa:', mapSize.width, 'x', mapSize.height);
+        }
+        if (document.getElementById('grafico-atendimentos')) {
+            const chartSize = document.getElementById('grafico-atendimentos').getBoundingClientRect();
+            console.log('Dimensões do canvas do gráfico:', chartSize.width, 'x', chartSize.height);
+        }
+        console.log('Agendando inicialização com timeout de 300ms...');
+        setTimeout(function() {
+            console.log('Timeout de 300ms concluído, iniciando mapa e gráficos...');
+            if (typeof inicializarMapaEGraficos === 'function') {
+                inicializarMapaEGraficos();
+            } else {
+                console.error('Função inicializarMapaEGraficos NÃO encontrada!');
+            }
+        }, 300);
+    });
+
+    function inicializarMapaEGraficos() {
+        console.log('===== INICIALIZANDO MAPA E GRÁFICOS DA GESTÃO =====');
+        console.log('Verificando elementos no início da função inicializarMapaEGraficos:');
+        console.log('- mapa-cras existe:', !!document.getElementById('mapa-cras'));
+        console.log('- grafico-atendimentos existe:', !!document.getElementById('grafico-atendimentos'));
+        console.log('Verificando biblioteca Leaflet:', typeof L !== 'undefined' ? 'Disponível' : 'NÃO DISPONÍVEL');
+        console.log('Verificando biblioteca Chart.js:', typeof Chart !== 'undefined' ? 'Disponível' : 'NÃO DISPONÍVEL');
+
+        // Inicializar o mapa
+        if (typeof inicializarMapa === 'function') {
+            inicializarMapa();
+        } else {
+            console.error('Função inicializarMapa NÃO encontrada!');
+        }
+        // Inicializar o gráfico
+        if (typeof inicializarGrafico === 'function') {
+            inicializarGrafico();
+        } else {
+            console.error('Função inicializarGrafico NÃO encontrada!');
+        }
+    }
+
+    function inicializarMapa() {
+        console.log('===== INICIALIZANDO MAPA =====');
+        // Verificar se o elemento do mapa existe
+        const mapaElement = document.getElementById('mapa-cras');
+        if (!mapaElement) {
+            console.error('ERRO: Elemento do mapa não encontrado!');
+            console.log('Todos os elementos da página:', document.querySelectorAll('*').length);
+            console.log('IDs disponíveis:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+            return;
+        }
+        console.log('Elemento do mapa encontrado. Tamanho:', mapaElement.offsetWidth, 'x', mapaElement.offsetHeight);
+
+        // Configuração do mapa
+        try {
+            if (window.mapa) {
+                console.log('Mapa já existe, removendo instância anterior...');
+                window.mapa.remove();
+            }
+            console.log('Criando nova instância do mapa...');
+            window.mapa = L.map('mapa-cras').setView([-1.684164, -50.489418], 13);
+
+            console.log('Adicionando camada de tiles...');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(window.mapa);
+
+            // Adicionar marcadores para cada CRAS
+            console.log('Adicionando marcadores ao mapa...');
+            const crasLocations = [
+                {nome: 'CRAS Santa Cruz', lat: -1.684164, lng: -50.489418},
+                {nome: 'CRAS Riacho Doce', lat: -1.675195, lng: -50.481810},
+                {nome: 'CRAS Jardim Tropical', lat: -1.680024, lng: -50.490017},
+                {nome: 'CRAS Cidade Nova', lat: -1.691096, lng: -50.477267},
+                {nome: 'CRAS Aeroporto', lat: -1.678832, lng: -50.474677},
+            ];
+            crasLocations.forEach(function(cras, index) {
+                console.log(`Adicionando marcador ${index + 1}: ${cras.nome}`);
+                L.marker([cras.lat, cras.lng])
+                    .addTo(window.mapa)
+                    .bindPopup(`<b>${cras.nome}</b><br>Famílias atendidas: 325<br><a href="#">Ver detalhes</a>`);
+            });
+            console.log('Agendando redimensionamento do mapa...');
+            setTimeout(function() {
+                console.log('Forçando redimensionamento do mapa...');
+                window.mapa.invalidateSize();
+                console.log('Mapa redimensionado');
+                // Verificar tamanho do container após redimensionamento
+                console.log('Tamanho do container após redimensionamento:', 
+                    mapaElement.offsetWidth, 'x', mapaElement.offsetHeight);
+            }, 100);
+            console.log('Mapa inicializado com sucesso!');
+        } catch (mapaError) {
+            console.error('ERRO AO INICIALIZAR O MAPA:', mapaError);
+            console.error('Stack trace:', mapaError.stack);
+        }
+    }
+
+    function inicializarGrafico() {
+        console.log('===== INICIALIZANDO GRÁFICO =====');
+        // Verificar se o elemento do gráfico existe
+        const graficoElement = document.getElementById('grafico-atendimentos');
+        if (!graficoElement) {
+            console.error('ERRO: Elemento do gráfico não encontrado!');
+            return;
+        }
+        console.log('Elemento do gráfico encontrado. Tamanho:', graficoElement.offsetWidth, 'x', graficoElement.offsetHeight);
+
+        // Configuração do gráfico de comparativo
+        try {
+            if (window.graficoAtendimentos) {
+                console.log('Gráfico já existe, destruindo instância anterior...');
+                window.graficoAtendimentos.destroy();
+            }
+            console.log('Obtendo contexto 2D do canvas...');
+            var ctx = graficoElement.getContext('2d');
+            if (!ctx) {
+                console.error('ERRO: Não foi possível obter o contexto 2D do canvas');
+                return;
+            }
+            console.log('Criando nova instância de gráfico...');
+            window.graficoAtendimentos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['CRAS Santa Cruz', 'CRAS Riacho Doce', 'CRAS Jardim Tropical', 'CRAS Cidade Nova', 'CRAS Aeroporto'],
+                    datasets: [{
+                        label: 'Famílias Atendidas',
+                        data: [423, 385, 296, 347, 312],
+                        backgroundColor: '#4e73df'
+                    }, {
+                        label: 'Visitas Realizadas',
+                        data: [128, 95, 86, 102, 78],
+                        backgroundColor: '#1cc88a'
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Atividades por CRAS (último mês)'
+                        },
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+            console.log('Gráfico inicializado com sucesso!', window.graficoAtendimentos);
+        } catch (graficoError) {
+            console.error('ERRO AO INICIALIZAR O GRÁFICO:', graficoError);
+            console.error('Stack trace:', graficoError.stack);
+        }
+    }
+</script>
+{% endblock %}
